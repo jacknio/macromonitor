@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Macro Shock Radar</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Macro monitor navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <h1>Macro Shock Radar</h1>
+            <p>Public macro anomaly monitor</p>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">Risk domains</div>
+          <nav class="group-nav" id="groupNav"></nav>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">Severity</div>
+          <div class="severity-nav" id="severityNav"></div>
+        </div>
+
+        <div class="source-panel">
+          <div class="sidebar-label">Source health</div>
+          <div id="sourceHealth" class="source-health">Waiting for first pull...</div>
+          <div class="source-links" id="sourceLinks"></div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="title-block">
+            <p class="eyebrow">Live monitor</p>
+            <h2>Macro shock early-warning console</h2>
+            <p id="runMeta">Loading public data, computing historical extremes.</p>
+          </div>
+          <div class="toolbar" aria-label="Dashboard controls">
+            <label class="search-box">
+              <span>Search</span>
+              <input id="searchInput" type="search" placeholder="VIX, USDJPY, CPI, credit..." autocomplete="off" />
+            </label>
+            <button id="refreshBtn" class="toolbar-btn" type="button">Refresh</button>
+            <button id="demoBtn" class="toolbar-btn subtle" type="button">Demo</button>
+          </div>
+        </header>
+
+        <section class="status-strip" id="statusStrip" aria-live="polite">
+          <div>
+            <span class="metric-label">Coverage</span>
+            <strong id="coverageText">--</strong>
+          </div>
+          <div>
+            <span class="metric-label">Top scenario</span>
+            <strong id="topScenarioText">--</strong>
+          </div>
+          <div>
+            <span class="metric-label">Extreme signals</span>
+            <strong id="extremeText">--</strong>
+          </div>
+          <div>
+            <span class="metric-label">Cache</span>
+            <strong id="cacheText">--</strong>
+          </div>
+        </section>
+
+        <section class="scenario-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Scenario radar</p>
+              <h3>Regime-level pressure</h3>
+            </div>
+            <p>Aggregates related indicators so a single shock pattern can surface before it is obvious in headlines.</p>
+          </div>
+          <div class="scenario-grid" id="scenarioGrid"></div>
+        </section>
+
+        <section class="main-grid">
+          <div class="metric-workbench">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Signal table</p>
+                <h3>Historical extremes and fast moves</h3>
+              </div>
+              <div class="sort-tabs" id="sortTabs" role="tablist" aria-label="Sort metrics">
+                <button data-sort="alert" class="active" type="button">Alert</button>
+                <button data-sort="risk" type="button">Risk</button>
+                <button data-sort="tail" type="button">Tail</button>
+                <button data-sort="move" type="button">Move</button>
+              </div>
+            </div>
+
+            <div class="table-shell">
+              <div class="metric-header">
+                <span>Score</span>
+                <span>Indicator</span>
+                <span>Latest</span>
+                <span>Percentile</span>
+                <span>1m move</span>
+                <span>Trend</span>
+                <span>As of</span>
+              </div>
+              <div id="metricRows" class="metric-rows"></div>
+            </div>
+          </div>
+
+          <aside class="inspector" id="inspector">
+            <div class="empty-state">
+              <span class="empty-dot"></span>
+              <h3>Select a signal</h3>
+              <p>Click any row to inspect the history, distribution band, event markers, and rule-based anomaly read.</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

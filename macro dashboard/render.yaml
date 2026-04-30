@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: macro-shock-radar
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: "HOST=0.0.0.0 python3 server.py"
+    envVars:
+      - key: MACRO_CACHE_TTL_SECONDS
+        value: "21600"

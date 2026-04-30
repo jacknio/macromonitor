@@ -38,6 +38,7 @@ DATA_DIR = os.path.join(ROOT, "data")
 CACHE_DIR = os.path.join(ROOT, ".cache")
 HTTP_CACHE_DIR = os.path.join(CACHE_DIR, "http")
 CATALOG_PATH = os.path.join(DATA_DIR, "catalog.json")
+SNAPSHOT_PATH = os.path.join(DATA_DIR, "bootstrap_monitor.json")
 
 CACHE_TTL_SECONDS = int(os.environ.get("MACRO_CACHE_TTL_SECONDS", str(6 * 60 * 60)))
 DEFAULT_PORT = int(os.environ.get("PORT", "8787"))
@@ -55,6 +56,15 @@ def ensure_dirs():
 def load_catalog():
     with open(CATALOG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_snapshot():
+    if not os.path.exists(SNAPSHOT_PATH):
+        return None
+    with open(SNAPSHOT_PATH, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    payload["snapshot"] = True
+    return payload
 
 
 def utc_now_iso():
@@ -1040,6 +1050,13 @@ class MacroHandler(SimpleHTTPRequestHandler):
                         "metrics": catalog.get("metrics", []),
                     },
                 )
+                return
+            if parsed.path == "/api/snapshot":
+                payload = load_snapshot()
+                if payload is None:
+                    json_response(self, 404, {"ok": False, "error": "snapshot unavailable"})
+                else:
+                    json_response(self, 200, payload)
                 return
             if parsed.path == "/api/monitor":
                 refresh = query.get("refresh", ["0"])[0] in ("1", "true", "yes")

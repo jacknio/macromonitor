@@ -8,7 +8,8 @@ const state = {
   window: "5Y",
   seriesCache: new Map(),
   loading: false,
-  demo: new URLSearchParams(window.location.search).get("demo") === "1"
+  demo: new URLSearchParams(window.location.search).get("demo") === "1",
+  liveRefreshInFlight: false
 };
 
 const els = {
@@ -131,6 +132,36 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function fetchJsonWithTimeout(url, timeoutMs = 45000) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`${response.status} ${text.slice(0, 140)}`);
+    }
+    return response.json();
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+function applyMonitorPayload(payload, options = {}) {
+  state.monitor = payload;
+  state.loading = false;
+  if (!state.selectedId) {
+    const first = payload.metrics.find((metric) => metric.ok);
+    state.selectedId = first ? first.id : null;
+  }
+  renderAll();
+  if (state.selectedId) selectMetric(state.selectedId, { quiet: true });
+  if (!options.quiet) {
+    const mode = payload.snapshot ? "bootstrap snapshot" : payload.demo ? "demo data" : "public data";
+    showToast(`Monitor loaded from ${mode}.`);
+  }
+}
+
 async function loadMonitor(refresh = false) {
   state.loading = true;
   renderLoading();
@@ -138,21 +169,36 @@ async function loadMonitor(refresh = false) {
   if (refresh) params.set("refresh", "1");
   if (state.demo) params.set("demo", "1");
   try {
-    const payload = await fetchJson(`/api/monitor?${params.toString()}`);
-    state.monitor = payload;
-    state.loading = false;
-    if (!state.selectedId) {
-      const first = payload.metrics.find((metric) => metric.ok);
-      state.selectedId = first ? first.id : null;
+    if (!refresh && !state.demo) {
+      try {
+        const snapshot = await fetchJsonWithTimeout("/api/snapshot", 8000);
+        applyMonitorPayload(snapshot);
+        refreshMonitorInBackground();
+        return;
+      } catch (snapshotError) {
+        showToast("Bootstrap snapshot unavailable; pulling live data.");
+      }
     }
-    renderAll();
-    if (state.selectedId) selectMetric(state.selectedId, { quiet: true });
-    const mode = payload.demo ? "demo data" : "public data";
-    showToast(`Monitor refreshed from ${mode}.`);
+    const payload = await fetchJsonWithTimeout(`/api/monitor?${params.toString()}`, refresh ? 90000 : 45000);
+    applyMonitorPayload(payload);
   } catch (error) {
     state.loading = false;
     renderError(error);
-    showToast("Data pull failed. Demo mode is available.");
+    showToast("Live pull is slow or failed. Demo mode is available.");
+  }
+}
+
+async function refreshMonitorInBackground() {
+  if (state.liveRefreshInFlight || state.demo) return;
+  state.liveRefreshInFlight = true;
+  try {
+    const payload = await fetchJsonWithTimeout("/api/monitor", 120000);
+    applyMonitorPayload(payload, { quiet: true });
+    showToast("Live public data finished refreshing.");
+  } catch (error) {
+    showToast("Live refresh is still warming up; snapshot remains loaded.");
+  } finally {
+    state.liveRefreshInFlight = false;
   }
 }
 
@@ -194,7 +240,8 @@ function renderTopStatus() {
   const coverage = monitor.coverage || {};
   const topScenario = (monitor.scenarios || [])[0];
   const extremes = monitor.extremes || [];
-  els.runMeta.textContent = `${monitor.demo ? "Demo mode" : "Live mode"} - generated ${formatGeneratedAt(monitor.generatedAt)} from ${coverage.ok || 0}/${coverage.total || 0} available series.`;
+  const mode = monitor.snapshot ? "Snapshot mode" : monitor.demo ? "Demo mode" : "Live mode";
+  els.runMeta.textContent = `${mode} - generated ${formatGeneratedAt(monitor.generatedAt)} from ${coverage.ok || 0}/${coverage.total || 0} available series.`;
   els.coverageText.textContent = `${coverage.ok || 0}/${coverage.total || 0} live`;
   els.topScenarioText.textContent = topScenario ? `${topScenario.name} ${topScenario.score}` : "--";
   els.extremeText.textContent = `${extremes.length} highlighted`;
@@ -345,6 +392,10 @@ async function selectMetric(id, options = {}) {
   state.selectedId = id;
   renderRows();
   renderInspector();
+  if (state.monitor?.snapshot && !state.demo) {
+    if (!options.quiet) showToast("Full history loads after live refresh finishes.");
+    return;
+  }
   const cached = state.seriesCache.get(id);
   if (cached?.points) return;
   const params = new URLSearchParams({ id });

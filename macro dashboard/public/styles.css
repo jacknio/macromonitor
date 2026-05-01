@@ -342,6 +342,7 @@ button {
   line-height: 1.15;
 }
 
+.country-section,
 .scenario-section,
 .metric-workbench,
 .inspector {
@@ -425,6 +426,12 @@ button {
   font-weight: 700;
 }
 
+.score-ring.small {
+  width: 42px;
+  height: 42px;
+  font-size: 12px;
+}
+
 .severity-pill {
   display: inline-flex;
   align-items: center;
@@ -436,6 +443,103 @@ button {
   font-size: 11px;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.country-matrix {
+  overflow: auto;
+  margin-bottom: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.country-header,
+.country-row {
+  display: grid;
+  grid-template-columns: 58px minmax(120px, 0.92fr) minmax(86px, 0.72fr) minmax(76px, 0.58fr) minmax(82px, 0.64fr) minmax(78px, 0.58fr) minmax(82px, 0.64fr) minmax(150px, 1.05fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 820px;
+}
+
+.country-header {
+  min-height: 36px;
+  padding: 0 14px;
+  color: var(--muted);
+  background: #e8ece4;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.country-row {
+  width: 100%;
+  min-height: 66px;
+  padding: 11px 14px;
+  color: var(--ink);
+  background: rgba(255, 250, 240, 0.76);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.country-row:last-child {
+  border-bottom: 0;
+}
+
+.country-row:hover {
+  background: var(--paper-strong);
+  box-shadow: inset 3px 0 0 var(--tile-color);
+}
+
+.country-row.loading {
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.country-name,
+.country-value,
+.country-driver {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.country-name strong,
+.country-driver strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.country-name em,
+.country-value em,
+.country-driver em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.country-value strong,
+.country-missing {
+  overflow-wrap: anywhere;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.country-value strong {
+  color: var(--tile-color);
+}
+
+.country-missing {
+  color: var(--muted-2);
 }
 
 .scenario-tile h4 {
@@ -954,6 +1058,12 @@ button {
 
   .scenario-grid {
     grid-template-columns: 1fr;
+  }
+
+  .country-header,
+  .country-row {
+    min-width: 760px;
+    grid-template-columns: 54px minmax(104px, 0.9fr) repeat(5, minmax(76px, 0.62fr)) minmax(130px, 1fr);
   }
 
   .metric-header {

@@ -39,7 +39,7 @@ The server reads `PORT` from the host automatically, so Render/Railway/Fly-style
 
 ## What It Watches
 
-The catalog is in `data/catalog.json`. It currently covers 56 public series across:
+The catalog is in `data/catalog.json`. It currently expands to 148 public series across:
 
 - Markets: VIX, S&P 500, NASDAQ, Nikkei
 - Rates: 3M/2Y/10Y/30Y Treasury yields, 2s10s, 3m10y, real yields, breakevens
@@ -50,8 +50,9 @@ The catalog is in `data/catalog.json`. It currently covers 56 public series acro
 - FX/carry: broad dollar, USDJPY, USDCNY, EURUSD
 - Commodities: WTI, Brent, gasoline, natural gas, copper, gold volatility
 - Valuation: Shiller CAPE, S&P 500 trailing PE, earnings yield, dividend yield, Russell 2000 trailing PE, Russell 2000 forward PE, Russell 2000 CAPE, Buffett indicator proxy, equity/M2, equity/Fed balance sheet, earnings-yield gaps
+- Sovereign/country stress: general-government debt/GDP, 10-year government bond yields, sovereign spreads, GDP growth, CPI inflation, unemployment, and current-account balances for major economies
 
-Most data comes from FRED public CSV endpoints. S&P 500 valuation multiples come from Multpl public tables. Russell 2000 PE, forward PE, and CAPE come from Siblis Research public tables. The app caches pulls in `.cache/http` for 6 hours by default.
+Most data comes from FRED public CSV endpoints, including OECD/IMF-hosted country series where available. S&P 500 valuation multiples come from Multpl public tables. Russell 2000 PE, forward PE, and CAPE come from Siblis Research public tables. Country macro indicators come from the World Bank open data API. The app caches pulls in `.cache/http` for 6 hours by default.
 
 ## Scoring
 
@@ -72,7 +73,9 @@ Severity bands:
 - `watch`: 45-61
 - `normal`: below 45
 
-Scenario scores aggregate related risk scores. The current scenario groups are JPY carry unwind, funding stress, inflation shock, growth scare, liquidity drain, cross-asset risk-off, and valuation fragility.
+Scenario scores aggregate related risk scores. The current scenario groups are JPY carry unwind, funding stress, inflation shock, growth scare, liquidity drain, cross-asset risk-off, valuation fragility, sovereign refinancing, country macro shock, and external vulnerability.
+
+The country matrix separately groups each country's generated metrics into a country stress score. Rows show the latest debt/GDP, 10-year yield or spread, inflation, GDP growth, current-account balance, and the top driver. Clicking a country row opens the top driver's history chart.
 
 ## Derived Ratios
 
@@ -85,6 +88,15 @@ Current derived ratios:
 - Equity market value to Fed assets: `NCBEILQ027S / WALCL`
 - Fed model gap: S&P earnings yield minus 10-year Treasury yield
 - Real earnings yield gap: S&P earnings yield minus 10-year TIPS real yield
+- Italy-Germany, France-Germany, UK-Germany, and Japan-U.S. 10-year sovereign spreads
+
+## Country Templates
+
+`countries` and `countryMetricTemplates` in `data/catalog.json` generate repeated country metrics without hand-writing every series. Each country can define:
+
+- `debtSeries`: FRED/IMF general-government gross debt to GDP
+- `yield10ySeries`: FRED/OECD long-term government bond yield
+- World Bank templates for GDP growth, CPI inflation, unemployment, and current-account balance
 
 ## API
 
@@ -92,6 +104,7 @@ Current derived ratios:
 GET /api/monitor
 GET /api/monitor?refresh=1
 GET /api/monitor?demo=1
+GET /api/snapshot
 GET /api/series?id=dexjpus
 GET /api/catalog
 GET /api/health

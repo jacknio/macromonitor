@@ -55,7 +55,69 @@ def ensure_dirs():
 
 def load_catalog():
     with open(CATALOG_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        catalog = json.load(f)
+    return expand_catalog(catalog)
+
+
+def format_country_template(value, country):
+    if not isinstance(value, str):
+        return value
+    return value.format(
+        code=country.get("code", ""),
+        code_lower=country.get("code", "").lower(),
+        country=country.get("name", ""),
+        short=country.get("short", country.get("code", "")),
+    )
+
+
+def expand_catalog(catalog):
+    """Expand compact country templates into regular metric definitions."""
+    countries = catalog.get("countries", [])
+    templates = catalog.get("countryMetricTemplates", [])
+    if not countries or not templates:
+        return catalog
+
+    metrics = list(catalog.get("metrics", []))
+    for country in countries:
+        country_code = country.get("code")
+        if not country_code:
+            continue
+        for template in templates:
+            source_key = template.get("sourceKey")
+            if source_key and not country.get(source_key):
+                continue
+
+            metric = {}
+            for key, value in template.items():
+                if key in ("sourceKey", "sourceIdTemplate"):
+                    continue
+                if isinstance(value, list):
+                    metric[key] = [format_country_template(item, country) for item in value]
+                else:
+                    metric[key] = format_country_template(value, country)
+
+            metric["id"] = "%s_%s" % (country_code.lower(), template["id"])
+            metric["region"] = country.get("name")
+            metric["country"] = country_code
+            metric["countryName"] = country.get("name")
+            metric["countryShort"] = country.get("short", country_code)
+            metric["countryRegion"] = country.get("region")
+
+            if source_key:
+                metric["sourceId"] = country[source_key]
+            elif template.get("sourceIdTemplate"):
+                metric["sourceId"] = format_country_template(template["sourceIdTemplate"], country)
+
+            tags = list(metric.get("tags", []))
+            tags.extend(["country", "country_%s" % country_code.lower()])
+            if country.get("region"):
+                tags.append("region_%s" % re.sub(r"[^a-z0-9]+", "_", country["region"].lower()).strip("_"))
+            metric["tags"] = list(dict.fromkeys(tags))
+            metrics.append(metric)
+
+    expanded = dict(catalog)
+    expanded["metrics"] = metrics
+    return expanded
 
 
 def load_snapshot():
@@ -206,6 +268,12 @@ def siblis_url(slug):
     return "https://siblisresearch.com/data/%s/" % urllib.parse.quote(slug, safe="-")
 
 
+def worldbank_url(country_code, indicator):
+    country = urllib.parse.quote(country_code, safe="")
+    indicator = urllib.parse.quote(indicator, safe=".")
+    return "https://api.worldbank.org/v2/country/%s/indicator/%s?format=json&per_page=20000" % (country, indicator)
+
+
 def parse_fred_csv(text, metric):
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames or len(reader.fieldnames) < 2:
@@ -318,6 +386,28 @@ def parse_siblis_html(text, metric):
         points.append({"date": date_value, "value": numeric})
     if not points:
         raise ValueError("Siblis table had no parseable observations for %s" % column_name)
+    return dedupe_sort(points)
+
+
+def parse_worldbank_json(text, metric):
+    data = json.loads(text)
+    if isinstance(data, dict) and data.get("message"):
+        raise ValueError("World Bank error: %s" % data.get("message"))
+    if not isinstance(data, list) or len(data) < 2 or not isinstance(data[1], list):
+        raise ValueError("World Bank response missing observation list")
+
+    points = []
+    for row in data[1]:
+        numeric = parse_number(row.get("value"))
+        year = parse_number(row.get("date"))
+        if numeric is None or year is None:
+            continue
+        year_int = int(year)
+        if year_int < 1800 or year_int > 2200:
+            continue
+        points.append({"date": dt.date(year_int, 12, 31), "value": numeric})
+    if not points:
+        raise ValueError("World Bank series had no numeric observations")
     return dedupe_sort(points)
 
 
@@ -444,6 +534,14 @@ def fetch_raw_points(metric, refresh=False):
         url = siblis_url(metric["sourceId"])
         text, status, fetched_at = fetch_url(url, refresh=refresh)
         return parse_siblis_html(text, metric), status, fetched_at, url
+    if provider == "worldbank":
+        indicator = metric.get("indicator") or metric.get("sourceId")
+        country_code = metric.get("country") or metric.get("countryCode")
+        if not indicator or not country_code:
+            raise ValueError("World Bank metric missing country or indicator")
+        url = worldbank_url(country_code, indicator)
+        text, status, fetched_at = fetch_url(url, refresh=refresh)
+        return parse_worldbank_json(text, metric), status, fetched_at, url
     if provider == "yahoo":
         url = yahoo_url(metric["sourceId"])
         text, status, fetched_at = fetch_url(url, refresh=refresh)
@@ -472,6 +570,8 @@ def infer_scale(metric):
         return 4.0
     if frequency == "semiannual":
         return 2.0
+    if frequency == "annual":
+        return 1.0
     return 1.0
 
 
@@ -675,6 +775,8 @@ def stale_days_for(metric):
         return 135
     if frequency == "semiannual":
         return 240
+    if frequency == "annual":
+        return 1100
     return 45
 
 
@@ -865,6 +967,11 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             "short": metric.get("short"),
             "group": metric.get("group"),
             "region": metric.get("region"),
+            "country": metric.get("country"),
+            "countryName": metric.get("countryName"),
+            "countryShort": metric.get("countryShort"),
+            "countryRegion": metric.get("countryRegion"),
+            "countryRole": metric.get("countryRole"),
             "frequency": metric.get("frequency"),
             "unit": metric.get("unit"),
             "transform": metric.get("transform"),
@@ -919,6 +1026,11 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             "short": metric.get("short"),
             "group": metric.get("group"),
             "region": metric.get("region"),
+            "country": metric.get("country"),
+            "countryName": metric.get("countryName"),
+            "countryShort": metric.get("countryShort"),
+            "countryRegion": metric.get("countryRegion"),
+            "countryRole": metric.get("countryRole"),
             "unit": metric.get("unit"),
             "riskDirection": metric.get("riskDirection", "two-sided"),
             "tags": metric.get("tags", []),
@@ -931,6 +1043,82 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             "severity": "unavailable",
             "sourceStatus": "error",
         }
+
+
+def latest_role_metric(metrics, role):
+    candidates = [item for item in metrics if item.get("countryRole") == role and item.get("ok")]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (item.get("asOf") or "", item.get("alertScore", 0)), reverse=True)
+    item = candidates[0]
+    return {
+        "id": item.get("id"),
+        "short": item.get("short"),
+        "latest": item.get("latest"),
+        "unit": item.get("unit"),
+        "asOf": item.get("asOf"),
+        "severity": item.get("severity"),
+        "riskScore": item.get("riskScore"),
+        "alertScore": item.get("alertScore"),
+    }
+
+
+def country_score(country, metrics):
+    selected = [item for item in metrics if item.get("country") == country.get("code") and item.get("ok")]
+    if not selected:
+        return {
+            "code": country.get("code"),
+            "name": country.get("name"),
+            "short": country.get("short"),
+            "region": country.get("region"),
+            "score": 0,
+            "severity": "unavailable",
+            "available": 0,
+            "summary": {},
+            "drivers": [],
+        }
+
+    selected.sort(key=lambda item: item.get("riskScore", item.get("alertScore", 0)), reverse=True)
+    top = selected[:5]
+    top_scores = [item.get("riskScore", 0) for item in top]
+    max_score = max(top_scores)
+    avg_top = sum(top_scores) / float(len(top_scores))
+    score = int(round(clamp(max_score * 0.50 + avg_top * 0.50, 0, 100)))
+    summary = {
+        role: latest_role_metric(selected, role)
+        for role in ("debt", "yield10y", "spread", "inflation", "growth", "unemployment", "currentAccount")
+    }
+    return {
+        "code": country.get("code"),
+        "name": country.get("name"),
+        "short": country.get("short"),
+        "region": country.get("region"),
+        "score": score,
+        "severity": severity(score),
+        "available": len(selected),
+        "summary": summary,
+        "drivers": [
+            {
+                "id": item.get("id"),
+                "short": item.get("short"),
+                "name": item.get("name"),
+                "role": item.get("countryRole"),
+                "riskScore": item.get("riskScore"),
+                "alertScore": item.get("alertScore"),
+                "latest": item.get("latest"),
+                "unit": item.get("unit"),
+                "asOf": item.get("asOf"),
+                "severity": item.get("severity"),
+            }
+            for item in top[:4]
+        ],
+    }
+
+
+def build_country_matrix(catalog, metrics):
+    countries = [country_score(country, metrics) for country in catalog.get("countries", [])]
+    countries.sort(key=lambda item: item.get("score", 0), reverse=True)
+    return countries
 
 
 def scenario_score(scenario, metrics_by_id):
@@ -998,6 +1186,7 @@ def build_monitor(refresh=False, demo=False):
     metrics_by_id = {item["id"]: item for item in results if item.get("id")}
     scenarios = [scenario_score(item, metrics_by_id) for item in catalog.get("scenarios", [])]
     scenarios.sort(key=lambda item: item.get("score", 0), reverse=True)
+    countries = build_country_matrix(catalog, results)
 
     ok = [item for item in results if item.get("ok")]
     unavailable = [item for item in results if not item.get("ok")]
@@ -1017,6 +1206,7 @@ def build_monitor(refresh=False, demo=False):
         "sources": catalog.get("sources", []),
         "events": catalog.get("events", []),
         "scenarios": scenarios,
+        "countries": countries,
         "extremes": [
             {
                 "id": item["id"],

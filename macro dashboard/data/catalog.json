@@ -30,6 +30,125 @@
       "label": "Treasury Fiscal Data API",
       "url": "https://fiscaldata.treasury.gov/api-documentation/",
       "note": "Open public REST API; reserved for extension points and source attribution."
+    },
+    {
+      "name": "World Bank",
+      "label": "World Bank open data API",
+      "url": "https://api.worldbank.org/",
+      "note": "Public country-level annual macro indicators including GDP growth, CPI inflation, unemployment, and current-account balances."
+    }
+  ],
+  "countries": [
+    {"code": "USA", "short": "US", "name": "United States", "region": "North America", "debtSeries": "GGGDTAUSA188N", "yield10ySeries": "IRLTLT01USM156N", "tags": ["us", "reserve_currency"]},
+    {"code": "JPN", "short": "Japan", "name": "Japan", "region": "Asia", "debtSeries": "GGGDTAJPA188N", "yield10ySeries": "IRLTLT01JPM156N", "tags": ["japan", "carry"]},
+    {"code": "CHN", "short": "China", "name": "China", "region": "Asia", "debtSeries": "GGGDTACNA188N", "tags": ["china", "growth"]},
+    {"code": "DEU", "short": "Germany", "name": "Germany", "region": "Europe", "debtSeries": "GGGDTADEA188N", "yield10ySeries": "IRLTLT01DEM156N", "tags": ["europe", "core_europe"]},
+    {"code": "FRA", "short": "France", "name": "France", "region": "Europe", "debtSeries": "GGGDTAFRA188N", "yield10ySeries": "IRLTLT01FRM156N", "tags": ["europe", "core_europe"]},
+    {"code": "ITA", "short": "Italy", "name": "Italy", "region": "Europe", "debtSeries": "GGGDTAITA188N", "yield10ySeries": "IRLTLT01ITM156N", "tags": ["europe", "periphery"]},
+    {"code": "GBR", "short": "UK", "name": "United Kingdom", "region": "Europe", "debtSeries": "GGGDTAGBA188N", "yield10ySeries": "IRLTLT01GBM156N", "tags": ["uk", "europe"]},
+    {"code": "CAN", "short": "Canada", "name": "Canada", "region": "North America", "debtSeries": "GGGDTACAA188N", "yield10ySeries": "IRLTLT01CAM156N", "tags": ["canada"]},
+    {"code": "IND", "short": "India", "name": "India", "region": "Asia", "debtSeries": "GGGDTAINA188N", "tags": ["india", "em"]},
+    {"code": "BRA", "short": "Brazil", "name": "Brazil", "region": "Latin America", "debtSeries": "GGGDTABRA188N", "tags": ["brazil", "em"]},
+    {"code": "MEX", "short": "Mexico", "name": "Mexico", "region": "Latin America", "debtSeries": "GGGDTAMXA188N", "yield10ySeries": "IRLTLT01MXM156N", "tags": ["mexico", "em"]},
+    {"code": "KOR", "short": "Korea", "name": "South Korea", "region": "Asia", "debtSeries": "GGGDTAKRA188N", "yield10ySeries": "IRLTLT01KRM156N", "tags": ["korea", "asia"]},
+    {"code": "AUS", "short": "Australia", "name": "Australia", "region": "Asia-Pacific", "debtSeries": "GGGDTAAUA188N", "yield10ySeries": "IRLTLT01AUM156N", "tags": ["australia", "commodity"]}
+  ],
+  "countryMetricTemplates": [
+    {
+      "id": "debt_gdp",
+      "provider": "fred",
+      "sourceKey": "debtSeries",
+      "name": "{country} general government gross debt to GDP",
+      "short": "{short} debt/GDP",
+      "group": "Sovereign",
+      "frequency": "annual",
+      "unit": "% GDP",
+      "transform": "level",
+      "changeMode": "diff",
+      "countryRole": "debt",
+      "riskDirection": "high",
+      "tags": ["sovereign", "debt", "fiscal"],
+      "why": "General government gross debt to GDP is a slow-moving fiscal fragility gauge; high or rising readings can reduce policy room and raise refinancing sensitivity."
+    },
+    {
+      "id": "10y_yield",
+      "provider": "fred",
+      "sourceKey": "yield10ySeries",
+      "name": "{country} long-term government bond yield",
+      "short": "{short} 10Y",
+      "group": "Sovereign",
+      "frequency": "monthly",
+      "unit": "%",
+      "transform": "level",
+      "countryRole": "yield10y",
+      "riskDirection": "high",
+      "tags": ["sovereign", "rates", "refinancing"],
+      "why": "Long-term government bond yields are the market price of sovereign refinancing pressure and duration risk."
+    },
+    {
+      "id": "gdp_growth",
+      "provider": "worldbank",
+      "indicator": "NY.GDP.MKTP.KD.ZG",
+      "sourceId": "NY.GDP.MKTP.KD.ZG",
+      "name": "{country} real GDP growth",
+      "short": "{short} GDP",
+      "group": "Country Macro",
+      "frequency": "annual",
+      "unit": "%",
+      "transform": "level",
+      "countryRole": "growth",
+      "riskDirection": "low",
+      "tags": ["country_macro", "growth", "gdp_growth"],
+      "why": "Weak real GDP growth points to cyclical stress and a smaller income base for public and private debt."
+    },
+    {
+      "id": "inflation",
+      "provider": "worldbank",
+      "indicator": "FP.CPI.TOTL.ZG",
+      "sourceId": "FP.CPI.TOTL.ZG",
+      "name": "{country} CPI inflation",
+      "short": "{short} CPI",
+      "group": "Country Macro",
+      "frequency": "annual",
+      "unit": "%",
+      "transform": "level",
+      "countryRole": "inflation",
+      "riskDirection": "high",
+      "tags": ["country_macro", "inflation", "macro"],
+      "why": "High CPI inflation can force policy tightening, pressure real incomes, and destabilize local bonds and FX."
+    },
+    {
+      "id": "unemployment",
+      "provider": "worldbank",
+      "indicator": "SL.UEM.TOTL.ZS",
+      "sourceId": "SL.UEM.TOTL.ZS",
+      "name": "{country} unemployment rate",
+      "short": "{short} unemp.",
+      "group": "Country Macro",
+      "frequency": "annual",
+      "unit": "%",
+      "transform": "level",
+      "countryRole": "unemployment",
+      "riskDirection": "high",
+      "tags": ["country_macro", "labor", "unemployment", "growth"],
+      "why": "Rising unemployment is a direct read on domestic growth stress and political-economy pressure."
+    },
+    {
+      "id": "current_account",
+      "provider": "worldbank",
+      "indicator": "BN.CAB.XOKA.GD.ZS",
+      "sourceId": "BN.CAB.XOKA.GD.ZS",
+      "name": "{country} current account balance to GDP",
+      "short": "{short} C/A",
+      "group": "Country Macro",
+      "frequency": "annual",
+      "unit": "% GDP",
+      "transform": "level",
+      "changeMode": "diff",
+      "countryRole": "currentAccount",
+      "riskDirection": "low",
+      "tags": ["country_macro", "external", "current_account", "fx"],
+      "why": "A weak current account can expose countries to funding, FX, and balance-of-payments pressure when global liquidity tightens."
     }
   ],
   "scenarios": [
@@ -37,7 +156,7 @@
       "id": "carry_unwind",
       "name": "JPY carry unwind",
       "description": "Yen funding trade pressure: yen strength, equity volatility, Nikkei stress, U.S. rate compression, and broad risk-off.",
-      "metricIds": ["dexjpus", "nikkei225", "vix", "sp500", "dgs10", "t10y2y", "dxy", "hy_oas"],
+      "metricIds": ["dexjpus", "nikkei225", "vix", "sp500", "dgs10", "t10y2y", "dxy", "hy_oas", "jpn_10y_yield", "jp_us_10y_spread"],
       "tags": ["carry", "japan", "vol", "risk"]
     },
     {
@@ -81,6 +200,27 @@
       "description": "Equity valuation pressure across CAPE, PE, earnings yield gaps, market-cap-to-GDP, and liquidity-normalized equity ratios.",
       "metricIds": ["sp500_cape", "sp500_pe_ttm", "sp500_earnings_yield", "sp500_dividend_yield", "russell2000_pe_ttm", "russell2000_forward_pe", "russell2000_cape", "buffett_indicator", "equity_to_m2", "equity_to_fed_bs", "fed_model_gap", "real_earnings_yield_gap"],
       "tags": ["valuation", "equity", "ratio"]
+    },
+    {
+      "id": "sovereign_refinancing",
+      "name": "Sovereign refinancing",
+      "description": "Country-level debt fragility across government debt loads, long-term bond yields, and sovereign spread pressure.",
+      "metricIds": ["it_de_10y_spread", "fr_de_10y_spread", "uk_de_10y_spread", "jp_us_10y_spread"],
+      "tags": ["sovereign", "debt", "refinancing", "fiscal"]
+    },
+    {
+      "id": "country_macro_shock",
+      "name": "Country macro shock",
+      "description": "Large-country macro deterioration across growth, inflation, labor markets, and domestic policy stress.",
+      "metricIds": [],
+      "tags": ["country_macro"]
+    },
+    {
+      "id": "external_vulnerability",
+      "name": "External vulnerability",
+      "description": "Balance-of-payments and FX pressure from current-account weakness, dollar strength, and country-specific external stress.",
+      "metricIds": ["dxy", "dexcnh", "dexuseu"],
+      "tags": ["external", "current_account", "fx", "dollar"]
     }
   ],
   "events": [
@@ -344,6 +484,106 @@
       "riskDirection": "low",
       "tags": ["valuation", "rates", "real_yield", "equity", "ratio"],
       "why": "Compares equity earnings yield with real Treasury yield; low readings flag valuation fragility when real rates are high."
+    },
+    {
+      "id": "it_de_10y_spread",
+      "provider": "derived",
+      "sourceId": "Italy 10Y - Germany 10Y",
+      "name": "Italy minus Germany 10-year government bond spread",
+      "short": "Italy-DE 10Y",
+      "group": "Sovereign",
+      "region": "Europe",
+      "country": "ITA",
+      "countryName": "Italy",
+      "countryShort": "Italy",
+      "countryRegion": "Europe",
+      "countryRole": "spread",
+      "frequency": "monthly",
+      "unit": "pp",
+      "transform": "level",
+      "formula": "spread",
+      "components": [
+        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01ITM156N", "frequency": "monthly", "transform": "level"},
+        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+      ],
+      "riskDirection": "high",
+      "tags": ["sovereign", "spread", "refinancing", "europe", "fiscal"],
+      "why": "Italy's spread to Germany is a direct market gauge of euro-area sovereign refinancing and fiscal-fragmentation risk."
+    },
+    {
+      "id": "fr_de_10y_spread",
+      "provider": "derived",
+      "sourceId": "France 10Y - Germany 10Y",
+      "name": "France minus Germany 10-year government bond spread",
+      "short": "France-DE 10Y",
+      "group": "Sovereign",
+      "region": "Europe",
+      "country": "FRA",
+      "countryName": "France",
+      "countryShort": "France",
+      "countryRegion": "Europe",
+      "countryRole": "spread",
+      "frequency": "monthly",
+      "unit": "pp",
+      "transform": "level",
+      "formula": "spread",
+      "components": [
+        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01FRM156N", "frequency": "monthly", "transform": "level"},
+        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+      ],
+      "riskDirection": "high",
+      "tags": ["sovereign", "spread", "refinancing", "europe", "fiscal"],
+      "why": "France's spread to Germany helps catch fiscal credibility and euro-area core spread stress before it becomes a headline crisis."
+    },
+    {
+      "id": "uk_de_10y_spread",
+      "provider": "derived",
+      "sourceId": "UK 10Y - Germany 10Y",
+      "name": "United Kingdom minus Germany 10-year government bond spread",
+      "short": "UK-DE 10Y",
+      "group": "Sovereign",
+      "region": "Europe",
+      "country": "GBR",
+      "countryName": "United Kingdom",
+      "countryShort": "UK",
+      "countryRegion": "Europe",
+      "countryRole": "spread",
+      "frequency": "monthly",
+      "unit": "pp",
+      "transform": "level",
+      "formula": "spread",
+      "components": [
+        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01GBM156N", "frequency": "monthly", "transform": "level"},
+        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+      ],
+      "riskDirection": "high",
+      "tags": ["sovereign", "spread", "refinancing", "uk", "fiscal"],
+      "why": "UK-gilt underperformance versus Germany can flag domestic fiscal, inflation, or pension-led duration stress."
+    },
+    {
+      "id": "jp_us_10y_spread",
+      "provider": "derived",
+      "sourceId": "Japan 10Y - US 10Y",
+      "name": "Japan minus U.S. 10-year government bond spread",
+      "short": "Japan-US 10Y",
+      "group": "Sovereign",
+      "region": "Japan",
+      "country": "JPN",
+      "countryName": "Japan",
+      "countryShort": "Japan",
+      "countryRegion": "Asia",
+      "countryRole": "spread",
+      "frequency": "monthly",
+      "unit": "pp",
+      "transform": "level",
+      "formula": "spread",
+      "components": [
+        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01JPM156N", "frequency": "monthly", "transform": "level"},
+        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01USM156N", "frequency": "monthly", "transform": "level"}
+      ],
+      "riskDirection": "two-sided",
+      "tags": ["sovereign", "spread", "rates", "japan", "carry"],
+      "why": "Japan-U.S. long-rate spread changes can interact with yen carry trades, hedging costs, and Japanese capital flows."
     },
     {
       "id": "vix",

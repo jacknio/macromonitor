@@ -17,6 +17,7 @@ const els = {
   severityNav: document.getElementById("severityNav"),
   metricRows: document.getElementById("metricRows"),
   scenarioGrid: document.getElementById("scenarioGrid"),
+  countryGrid: document.getElementById("countryGrid"),
   inspector: document.getElementById("inspector"),
   searchInput: document.getElementById("searchInput"),
   refreshBtn: document.getElementById("refreshBtn"),
@@ -91,6 +92,7 @@ function formatValue(value, unit) {
   const text = compactNumber(value, unit === "%" || unit === "pp" ? 2 : 2);
   if (!unit || unit === "index" || unit === "people") return text;
   if (unit === "%") return `${text}%`;
+  if (unit === "% GDP") return `${text}% GDP`;
   if (unit === "pp") return `${text} pp`;
   if (unit === "% ann.") return `${text}% ann.`;
   return `${text} ${unit}`;
@@ -99,7 +101,7 @@ function formatValue(value, unit) {
 function formatMove(metric) {
   const move = metric.change1m;
   if (move === null || move === undefined) return "--";
-  const suffix = metric.changeMode === "pct" ? "%" : metric.unit === "%" ? " pp" : "";
+  const suffix = metric.changeMode === "pct" ? "%" : (metric.unit === "%" || metric.unit === "% GDP") ? " pp" : "";
   const sign = move > 0 ? "+" : "";
   return `${sign}${compactNumber(move, 2)}${suffix}`;
 }
@@ -204,6 +206,20 @@ async function refreshMonitorInBackground() {
 
 function renderLoading() {
   els.metricRows.innerHTML = `<div class="loading-block">Pulling public data and scoring anomalies...</div>`;
+  if (els.countryGrid) {
+    els.countryGrid.innerHTML = `
+      <div class="country-header">
+        <span>Score</span><span>Country</span><span>Debt/GDP</span><span>10Y</span><span>Inflation</span><span>GDP</span><span>C/A</span><span>Driver</span>
+      </div>
+      ${Array.from({ length: 6 }).map(() => `
+        <div class="country-row loading">
+          <span class="score-ring small" style="--score:0">--</span>
+          <span class="country-name"><strong>Loading</strong><em>waiting</em></span>
+          <span>--</span><span>--</span><span>--</span><span>--</span><span>--</span><span>--</span>
+        </div>
+      `).join("")}
+    `;
+  }
   els.scenarioGrid.innerHTML = Array.from({ length: 6 }).map(() => `
     <div class="scenario-tile severity-unknown">
       <div class="scenario-top"><span class="score-ring" style="--score:0">--</span><span class="severity-pill">loading</span></div>
@@ -230,6 +246,7 @@ function renderAll() {
   renderTopStatus();
   renderSources();
   renderNavs();
+  renderCountries();
   renderScenarios();
   renderRows();
   renderInspector();
@@ -293,6 +310,9 @@ function sortedFilteredMetrics() {
         metric.name,
         metric.group,
         metric.region,
+        metric.country,
+        metric.countryName,
+        metric.countryShort,
         metric.sourceId,
         ...(metric.tags || [])
       ].join(" ").toLowerCase();
@@ -334,6 +354,61 @@ function renderScenarios() {
       </button>
     `;
   }).join("");
+}
+
+function metricChip(metric, fallback = "--") {
+  if (!metric) return `<span class="country-missing">${fallback}</span>`;
+  return `
+    <span class="country-value ${cssSeverity(metric.severity)}">
+      <strong>${formatValue(metric.latest, metric.unit)}</strong>
+      <em>${formatDate(metric.asOf)}</em>
+    </span>
+  `;
+}
+
+function renderCountries() {
+  if (!els.countryGrid) return;
+  const countries = state.monitor.countries || [];
+  if (!countries.length) {
+    els.countryGrid.innerHTML = `<div class="loading-block">No country stress data available.</div>`;
+    return;
+  }
+
+  els.countryGrid.innerHTML = `
+    <div class="country-header">
+      <span>Score</span>
+      <span>Country</span>
+      <span>Debt/GDP</span>
+      <span>10Y</span>
+      <span>Inflation</span>
+      <span>GDP</span>
+      <span>C/A</span>
+      <span>Driver</span>
+    </div>
+    ${countries.map((country) => {
+      const summary = country.summary || {};
+      const driver = (country.drivers || [])[0];
+      const targetId = driver?.id || summary.debt?.id || summary.inflation?.id || "";
+      return `
+        <button type="button" class="country-row ${cssSeverity(country.severity)}" data-id="${escapeHtml(targetId)}">
+          <span class="score-ring small" style="--score:${country.score || 0}">${country.score || 0}</span>
+          <span class="country-name">
+            <strong>${escapeHtml(country.short || country.code)}</strong>
+            <em>${escapeHtml(country.name || "")}</em>
+          </span>
+          ${metricChip(summary.debt)}
+          ${metricChip(summary.yield10y || summary.spread)}
+          ${metricChip(summary.inflation)}
+          ${metricChip(summary.growth)}
+          ${metricChip(summary.currentAccount)}
+          <span class="country-driver">
+            <strong>${escapeHtml(driver?.short || driver?.name || "No driver")}</strong>
+            <em>${driver?.riskScore ?? "--"} risk / ${country.available || 0} live</em>
+          </span>
+        </button>
+      `;
+    }).join("")}
+  `;
 }
 
 function renderRows() {
@@ -439,7 +514,7 @@ function renderInspector() {
       <div class="inspector-stats">
         <div><span class="metric-label">Latest</span><strong>${formatValue(base.latest, base.unit)}</strong></div>
         <div><span class="metric-label">Percentile</span><strong>${formatPercentile(base.percentile)}</strong></div>
-        <div><span class="metric-label">1m move</span><strong>${formatMove(base)}</strong></div>
+        <div><span class="metric-label">Recent move</span><strong>${formatMove(base)}</strong></div>
       </div>
 
       <div class="window-tabs">
@@ -662,6 +737,12 @@ function wireEvents() {
     const scenario = (state.monitor?.scenarios || []).find((item) => item.id === tile.dataset.scenario);
     const driver = scenario?.drivers?.[0];
     if (driver) selectMetric(driver.id);
+  });
+
+  els.countryGrid?.addEventListener("click", (event) => {
+    const row = event.target.closest(".country-row[data-id]");
+    if (!row || !row.dataset.id) return;
+    selectMetric(row.dataset.id);
   });
 
   els.searchInput.addEventListener("input", (event) => {

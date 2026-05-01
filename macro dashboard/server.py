@@ -202,6 +202,10 @@ def multpl_url(slug):
     return "https://www.multpl.com/%s/table/by-month" % urllib.parse.quote(slug, safe="-")
 
 
+def siblis_url(slug):
+    return "https://siblisresearch.com/data/%s/" % urllib.parse.quote(slug, safe="-")
+
+
 def parse_fred_csv(text, metric):
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames or len(reader.fieldnames) < 2:
@@ -279,6 +283,41 @@ def parse_multpl_html(text, metric):
         points.append({"date": date_value, "value": numeric})
     if not points:
         raise ValueError("Multpl HTML table had no parseable observations")
+    return dedupe_sort(points)
+
+
+def parse_siblis_html(text, metric):
+    headers = [
+        clean_html_cell(value)
+        for value in re.findall(r"<th[^>]*data-original-value=\"([^\"]*)\"[^>]*>", text, re.I | re.S)
+    ]
+    column_name = metric.get("column")
+    if not column_name:
+        raise ValueError("Siblis metric missing column")
+    header_lookup = {header.lower(): idx for idx, header in enumerate(headers)}
+    column_idx = header_lookup.get(column_name.lower())
+    if column_idx is None:
+        raise ValueError("Siblis column not found: %s" % column_name)
+
+    tbody_match = re.search(r"<tbody>(.*?)</tbody>", text, re.I | re.S)
+    if not tbody_match:
+        raise ValueError("Siblis table missing tbody")
+    rows = re.findall(r"<tr[^>]*>(.*?)</tr>", tbody_match.group(1), re.I | re.S)
+    points = []
+    for row in rows:
+        cells = [
+            clean_html_cell(value)
+            for value in re.findall(r"<td[^>]*data-original-value=\"([^\"]*)\"[^>]*>", row, re.I | re.S)
+        ]
+        if len(cells) <= column_idx:
+            continue
+        date_value = parse_date(cells[0])
+        numeric = parse_number(cells[column_idx])
+        if date_value is None or numeric is None:
+            continue
+        points.append({"date": date_value, "value": numeric})
+    if not points:
+        raise ValueError("Siblis table had no parseable observations for %s" % column_name)
     return dedupe_sort(points)
 
 
@@ -401,6 +440,10 @@ def fetch_raw_points(metric, refresh=False):
         url = multpl_url(metric["sourceId"])
         text, status, fetched_at = fetch_url(url, refresh=refresh)
         return parse_multpl_html(text, metric), status, fetched_at, url
+    if provider == "siblis":
+        url = siblis_url(metric["sourceId"])
+        text, status, fetched_at = fetch_url(url, refresh=refresh)
+        return parse_siblis_html(text, metric), status, fetched_at, url
     if provider == "yahoo":
         url = yahoo_url(metric["sourceId"])
         text, status, fetched_at = fetch_url(url, refresh=refresh)
@@ -427,6 +470,8 @@ def infer_scale(metric):
         return 12.0
     if frequency == "quarterly":
         return 4.0
+    if frequency == "semiannual":
+        return 2.0
     return 1.0
 
 
@@ -628,6 +673,8 @@ def stale_days_for(metric):
         return 75
     if frequency == "quarterly":
         return 135
+    if frequency == "semiannual":
+        return 240
     return 45
 
 

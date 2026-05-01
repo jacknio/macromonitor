@@ -14,6 +14,12 @@
       "note": "Public HTML tables for long-history S&P 500 valuation ratios such as Shiller CAPE, PE, earnings yield, and dividend yield."
     },
     {
+      "name": "Siblis Research",
+      "label": "Siblis index valuation tables",
+      "url": "https://siblisresearch.com/",
+      "note": "Public index valuation tables used for Russell 2000 PE, forward PE, and CAPE history."
+    },
+    {
       "name": "Yahoo Finance Chart",
       "label": "Yahoo market chart endpoint",
       "url": "https://finance.yahoo.com/",
@@ -73,7 +79,7 @@
       "id": "valuation_fragility",
       "name": "Valuation fragility",
       "description": "Equity valuation pressure across CAPE, PE, earnings yield gaps, market-cap-to-GDP, and liquidity-normalized equity ratios.",
-      "metricIds": ["sp500_cape", "sp500_pe_ttm", "sp500_earnings_yield", "sp500_dividend_yield", "buffett_indicator", "equity_to_m2", "equity_to_fed_bs", "fed_model_gap", "real_earnings_yield_gap"],
+      "metricIds": ["sp500_cape", "sp500_pe_ttm", "sp500_earnings_yield", "sp500_dividend_yield", "russell2000_pe_ttm", "russell2000_forward_pe", "russell2000_cape", "buffett_indicator", "equity_to_m2", "equity_to_fed_bs", "fed_model_gap", "real_earnings_yield_gap"],
       "tags": ["valuation", "equity", "ratio"]
     }
   ],
@@ -174,6 +180,70 @@
       "riskDirection": "low",
       "tags": ["valuation", "equity", "ratio", "yield"],
       "why": "Low dividend yield is a simple long-history valuation pressure gauge."
+    },
+    {
+      "id": "russell2000_price",
+      "provider": "siblis",
+      "sourceId": "russell-2000-pe-yield",
+      "column": "Russell 2000 Index Price",
+      "name": "Russell 2000 index price",
+      "short": "Russell 2000",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "semiannual",
+      "unit": "index",
+      "transform": "level",
+      "riskDirection": "low",
+      "tags": ["valuation", "equity", "small_cap", "russell2000"],
+      "why": "Russell 2000 price history anchors the small-cap valuation ratios from the same public table."
+    },
+    {
+      "id": "russell2000_pe_ttm",
+      "provider": "siblis",
+      "sourceId": "russell-2000-pe-yield",
+      "column": "P/E (TTM)",
+      "name": "Russell 2000 trailing PE ratio",
+      "short": "R2K PE",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "semiannual",
+      "unit": "x",
+      "transform": "level",
+      "riskDirection": "high",
+      "tags": ["valuation", "equity", "small_cap", "russell2000", "ratio"],
+      "why": "Russell 2000 trailing PE tracks how expensive U.S. small caps are relative to realized earnings."
+    },
+    {
+      "id": "russell2000_forward_pe",
+      "provider": "siblis",
+      "sourceId": "russell-2000-pe-yield",
+      "column": "Forward P/E",
+      "name": "Russell 2000 forward PE ratio",
+      "short": "R2K Fwd PE",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "semiannual",
+      "unit": "x",
+      "transform": "level",
+      "riskDirection": "high",
+      "tags": ["valuation", "equity", "small_cap", "russell2000", "forward_pe", "ratio"],
+      "why": "Russell 2000 forward PE shows small-cap valuation versus expected earnings, useful when trailing earnings are cyclically distorted."
+    },
+    {
+      "id": "russell2000_cape",
+      "provider": "siblis",
+      "sourceId": "russell-2000-pe-yield",
+      "column": "CAPE Ratio",
+      "name": "Russell 2000 cyclically adjusted PE",
+      "short": "R2K CAPE",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "semiannual",
+      "unit": "x",
+      "transform": "level",
+      "riskDirection": "high",
+      "tags": ["valuation", "equity", "small_cap", "russell2000", "cape", "ratio"],
+      "why": "Russell 2000 CAPE smooths earnings over the cycle and highlights small-cap valuation fragility."
     },
     {
       "id": "buffett_indicator",

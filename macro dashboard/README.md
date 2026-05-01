@@ -49,9 +49,9 @@ The catalog is in `data/catalog.json`. It currently covers 56 public series acro
 - Liquidity: Fed balance sheet, reserves, TGA, ON RRP, M2, SOFR, Fed funds, IORB
 - FX/carry: broad dollar, USDJPY, USDCNY, EURUSD
 - Commodities: WTI, Brent, gasoline, natural gas, copper, gold volatility
-- Valuation: Shiller CAPE, S&P 500 trailing PE, earnings yield, dividend yield, Buffett indicator proxy, equity/M2, equity/Fed balance sheet, earnings-yield gaps
+- Valuation: Shiller CAPE, S&P 500 trailing PE, earnings yield, dividend yield, Russell 2000 trailing PE, Russell 2000 forward PE, Russell 2000 CAPE, Buffett indicator proxy, equity/M2, equity/Fed balance sheet, earnings-yield gaps
 
-Most data comes from FRED public CSV endpoints. Valuation multiples come from Multpl public tables. The app caches pulls in `.cache/http` for 6 hours by default.
+Most data comes from FRED public CSV endpoints. S&P 500 valuation multiples come from Multpl public tables. Russell 2000 PE, forward PE, and CAPE come from Siblis Research public tables. The app caches pulls in `.cache/http` for 6 hours by default.
 
 ## Scoring
 

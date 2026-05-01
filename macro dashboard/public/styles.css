@@ -349,6 +349,10 @@ button {
   animation: rise-in 560ms ease 100ms both;
 }
 
+.country-section {
+  margin-top: 28px;
+}
+
 .section-heading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(240px, 520px);

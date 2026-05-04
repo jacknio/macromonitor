@@ -893,6 +893,125 @@ def make_demo_points(metric):
     return points
 
 
+def score_metric_points(metric, points, source_status, fetched_at, source_url, include_points=False, as_of_date=None):
+    if as_of_date:
+        points = [point for point in points if point["date"] <= as_of_date]
+    if not points:
+        raise ValueError("no usable observations after transform")
+
+    history_start = parse_date(metric.get("historyStart") or "1990-01-01")
+    history = [point for point in points if history_start is None or point["date"] >= history_start]
+    if len(history) < 8:
+        history = points
+    values = [point["value"] for point in history]
+    sorted_values = sorted(values)
+    latest_point = points[-1]
+    latest_value = latest_point["value"]
+    percentile = percentile_rank(values, latest_value)
+    mean, std = mean_std(values)
+    z_value = None
+    if std:
+        z_value = (latest_value - mean) / std
+    rz_value = robust_z(values, latest_value)
+    active_z = rz_value if rz_value is not None else z_value
+
+    mode = change_mode(metric)
+    ch_1m = latest_change(points, 30, mode)
+    ch_3m = latest_change(points, 90, mode)
+    ch_1y = latest_change(points, 365, mode)
+    changes_1m = rolling_changes(points, 30, mode)
+    ch_mean, ch_std = mean_std(changes_1m)
+    momentum_z = None
+    if ch_1m is not None and ch_std:
+        momentum_z = (ch_1m - ch_mean) / ch_std
+
+    direction = metric.get("riskDirection", "two-sided")
+    any_tail = max(percentile, 1.0 - percentile) if percentile is not None else None
+    risk_tail = risk_tail_from_percentile(percentile, direction)
+    any_tail_score = score_tail(any_tail)
+    risk_tail_score = score_tail(risk_tail)
+    z_any_score = score_z(active_z)
+    z_risk_score = score_directed_z(active_z, direction)
+    momentum_any_score = score_z(momentum_z, cap=4.0)
+    momentum_risk_score = score_directed_z(momentum_z, direction, cap=4.0)
+
+    anomaly_score = max(
+        any_tail_score * 0.52 + z_any_score * 0.30 + momentum_any_score * 0.18,
+        momentum_any_score * 0.80,
+    )
+    risk_score = max(
+        risk_tail_score * 0.54 + z_risk_score * 0.31 + momentum_risk_score * 0.15,
+        momentum_risk_score * 0.78,
+    )
+    alert_score = max(risk_score, anomaly_score * 0.75)
+
+    min_point = min(history, key=lambda p: p["value"])
+    max_point = max(history, key=lambda p: p["value"])
+    reference_day = as_of_date or dt.date.today()
+    days_lag = (reference_day - latest_point["date"]).days
+    stale = days_lag > stale_days_for(metric)
+
+    stats = {
+        "id": metric["id"],
+        "sourceId": metric.get("sourceId"),
+        "provider": metric.get("provider"),
+        "name": metric.get("name"),
+        "short": metric.get("short"),
+        "group": metric.get("group"),
+        "region": metric.get("region"),
+        "country": metric.get("country"),
+        "countryName": metric.get("countryName"),
+        "countryShort": metric.get("countryShort"),
+        "countryRegion": metric.get("countryRegion"),
+        "countryRole": metric.get("countryRole"),
+        "frequency": metric.get("frequency"),
+        "unit": metric.get("unit"),
+        "transform": metric.get("transform"),
+        "riskDirection": direction,
+        "tags": metric.get("tags", []),
+        "why": metric.get("why"),
+        "latest": round_or_none(latest_value, 6),
+        "asOf": date_to_iso(latest_point["date"]),
+        "analysisAsOf": date_to_iso(as_of_date) if as_of_date else None,
+        "daysLag": days_lag,
+        "stale": stale,
+        "observations": len(points),
+        "historyObservations": len(history),
+        "historyStart": date_to_iso(history[0]["date"]) if history else None,
+        "percentile": round_or_none(percentile, 5),
+        "tailPercentile": round_or_none(any_tail, 5),
+        "riskTailPercentile": round_or_none(risk_tail, 5),
+        "zScore": round_or_none(z_value, 4),
+        "robustZ": round_or_none(rz_value, 4),
+        "momentumZ": round_or_none(momentum_z, 4),
+        "changeMode": mode,
+        "change1m": round_or_none(ch_1m, 5),
+        "change3m": round_or_none(ch_3m, 5),
+        "change1y": round_or_none(ch_1y, 5),
+        "p05": round_or_none(quantile(sorted_values, 0.05), 6),
+        "p25": round_or_none(quantile(sorted_values, 0.25), 6),
+        "p50": round_or_none(quantile(sorted_values, 0.50), 6),
+        "p75": round_or_none(quantile(sorted_values, 0.75), 6),
+        "p95": round_or_none(quantile(sorted_values, 0.95), 6),
+        "historicalMin": {"date": date_to_iso(min_point["date"]), "value": round_or_none(min_point["value"], 6)},
+        "historicalMax": {"date": date_to_iso(max_point["date"]), "value": round_or_none(max_point["value"], 6)},
+        "anomalyScore": int(round(clamp(anomaly_score, 0, 100))),
+        "riskScore": int(round(clamp(risk_score, 0, 100))),
+        "alertScore": int(round(clamp(alert_score, 0, 100))),
+        "severity": severity(alert_score),
+        "sourceStatus": source_status,
+        "sourceUrl": source_url,
+        "fetchedAt": fetched_at,
+        "ok": True,
+    }
+    stats["notes"] = make_note(metric, stats)
+    if include_points:
+        stats["points"] = [point_to_wire(point) for point in points]
+    else:
+        stats["spark"] = sample_points(points[-600:], 140)
+    return stats
+
+
 def analyze_metric(metric, refresh=False, include_points=False, demo=False):
     try:
         if demo:
@@ -904,119 +1023,7 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             raw_points, source_status, fetched_at, source_url = fetch_raw_points(metric, refresh=refresh)
 
         points = apply_transform(raw_points, metric)
-        if not points:
-            raise ValueError("no usable observations after transform")
-
-        history_start = parse_date(metric.get("historyStart") or "1990-01-01")
-        history = [point for point in points if history_start is None or point["date"] >= history_start]
-        if len(history) < 8:
-            history = points
-        values = [point["value"] for point in history]
-        sorted_values = sorted(values)
-        latest_point = points[-1]
-        latest_value = latest_point["value"]
-        percentile = percentile_rank(values, latest_value)
-        mean, std = mean_std(values)
-        z_value = None
-        if std:
-            z_value = (latest_value - mean) / std
-        rz_value = robust_z(values, latest_value)
-        active_z = rz_value if rz_value is not None else z_value
-
-        mode = change_mode(metric)
-        ch_1m = latest_change(points, 30, mode)
-        ch_3m = latest_change(points, 90, mode)
-        ch_1y = latest_change(points, 365, mode)
-        changes_1m = rolling_changes(points, 30, mode)
-        ch_mean, ch_std = mean_std(changes_1m)
-        momentum_z = None
-        if ch_1m is not None and ch_std:
-            momentum_z = (ch_1m - ch_mean) / ch_std
-
-        direction = metric.get("riskDirection", "two-sided")
-        any_tail = max(percentile, 1.0 - percentile) if percentile is not None else None
-        risk_tail = risk_tail_from_percentile(percentile, direction)
-        any_tail_score = score_tail(any_tail)
-        risk_tail_score = score_tail(risk_tail)
-        z_any_score = score_z(active_z)
-        z_risk_score = score_directed_z(active_z, direction)
-        momentum_any_score = score_z(momentum_z, cap=4.0)
-        momentum_risk_score = score_directed_z(momentum_z, direction, cap=4.0)
-
-        anomaly_score = max(
-            any_tail_score * 0.52 + z_any_score * 0.30 + momentum_any_score * 0.18,
-            momentum_any_score * 0.80,
-        )
-        risk_score = max(
-            risk_tail_score * 0.54 + z_risk_score * 0.31 + momentum_risk_score * 0.15,
-            momentum_risk_score * 0.78,
-        )
-        alert_score = max(risk_score, anomaly_score * 0.75)
-
-        min_point = min(history, key=lambda p: p["value"])
-        max_point = max(history, key=lambda p: p["value"])
-        today = dt.date.today()
-        days_lag = (today - latest_point["date"]).days
-        stale = days_lag > stale_days_for(metric)
-
-        stats = {
-            "id": metric["id"],
-            "sourceId": metric.get("sourceId"),
-            "provider": metric.get("provider"),
-            "name": metric.get("name"),
-            "short": metric.get("short"),
-            "group": metric.get("group"),
-            "region": metric.get("region"),
-            "country": metric.get("country"),
-            "countryName": metric.get("countryName"),
-            "countryShort": metric.get("countryShort"),
-            "countryRegion": metric.get("countryRegion"),
-            "countryRole": metric.get("countryRole"),
-            "frequency": metric.get("frequency"),
-            "unit": metric.get("unit"),
-            "transform": metric.get("transform"),
-            "riskDirection": direction,
-            "tags": metric.get("tags", []),
-            "why": metric.get("why"),
-            "latest": round_or_none(latest_value, 6),
-            "asOf": date_to_iso(latest_point["date"]),
-            "daysLag": days_lag,
-            "stale": stale,
-            "observations": len(points),
-            "historyObservations": len(history),
-            "historyStart": date_to_iso(history[0]["date"]) if history else None,
-            "percentile": round_or_none(percentile, 5),
-            "tailPercentile": round_or_none(any_tail, 5),
-            "riskTailPercentile": round_or_none(risk_tail, 5),
-            "zScore": round_or_none(z_value, 4),
-            "robustZ": round_or_none(rz_value, 4),
-            "momentumZ": round_or_none(momentum_z, 4),
-            "changeMode": mode,
-            "change1m": round_or_none(ch_1m, 5),
-            "change3m": round_or_none(ch_3m, 5),
-            "change1y": round_or_none(ch_1y, 5),
-            "p05": round_or_none(quantile(sorted_values, 0.05), 6),
-            "p25": round_or_none(quantile(sorted_values, 0.25), 6),
-            "p50": round_or_none(quantile(sorted_values, 0.50), 6),
-            "p75": round_or_none(quantile(sorted_values, 0.75), 6),
-            "p95": round_or_none(quantile(sorted_values, 0.95), 6),
-            "historicalMin": {"date": date_to_iso(min_point["date"]), "value": round_or_none(min_point["value"], 6)},
-            "historicalMax": {"date": date_to_iso(max_point["date"]), "value": round_or_none(max_point["value"], 6)},
-            "anomalyScore": int(round(clamp(anomaly_score, 0, 100))),
-            "riskScore": int(round(clamp(risk_score, 0, 100))),
-            "alertScore": int(round(clamp(alert_score, 0, 100))),
-            "severity": severity(alert_score),
-            "sourceStatus": source_status,
-            "sourceUrl": source_url,
-            "fetchedAt": fetched_at,
-            "ok": True,
-        }
-        stats["notes"] = make_note(metric, stats)
-        if include_points:
-            stats["points"] = [point_to_wire(point) for point in points]
-        else:
-            stats["spark"] = sample_points(points[-600:], 140)
-        return stats
+        return score_metric_points(metric, points, source_status, fetched_at, source_url, include_points=include_points)
     except Exception as exc:
         return {
             "id": metric.get("id"),
@@ -1121,6 +1128,200 @@ def build_country_matrix(catalog, metrics):
     return countries
 
 
+def analyze_metric_as_of(metric, as_of_date, refresh=False, demo=False):
+    try:
+        if demo:
+            raw_points = make_demo_points(metric)
+            source_status = "demo"
+            fetched_at = utc_now_iso()
+            source_url = "demo://%s" % metric.get("id")
+        else:
+            raw_points, source_status, fetched_at, source_url = fetch_raw_points(metric, refresh=refresh)
+        points = apply_transform(raw_points, metric)
+        return score_metric_points(
+            metric,
+            points,
+            source_status,
+            fetched_at,
+            source_url,
+            include_points=False,
+            as_of_date=as_of_date,
+        )
+    except Exception as exc:
+        return {
+            "id": metric.get("id"),
+            "short": metric.get("short"),
+            "name": metric.get("name"),
+            "group": metric.get("group"),
+            "unit": metric.get("unit"),
+            "riskDirection": metric.get("riskDirection", "two-sided"),
+            "ok": False,
+            "error": str(exc),
+            "alertScore": 0,
+            "riskScore": 0,
+            "anomalyScore": 0,
+            "severity": "unavailable",
+        }
+
+
+def case_metric_payload(metric_id, historical, current, threshold, pillar=None):
+    case_risk = historical.get("riskScore", 0) if historical.get("ok") else 0
+    now_risk = current.get("riskScore", 0) if current and current.get("ok") else 0
+    case_flag = case_risk >= threshold
+    now_flag = now_risk >= threshold
+    if case_flag and now_flag:
+        status = "matched"
+    elif case_flag:
+        status = "not_yet"
+    elif now_flag:
+        status = "now_only"
+    else:
+        status = "quiet"
+    return {
+        "id": metric_id,
+        "short": historical.get("short") or (current or {}).get("short"),
+        "name": historical.get("name") or (current or {}).get("name"),
+        "group": historical.get("group") or (current or {}).get("group"),
+        "riskDirection": historical.get("riskDirection") or (current or {}).get("riskDirection"),
+        "why": (current or historical).get("why"),
+        "pillar": pillar,
+        "status": status,
+        "caseFlag": case_flag,
+        "nowFlag": now_flag,
+        "case": {
+            "ok": historical.get("ok"),
+            "latest": historical.get("latest"),
+            "unit": historical.get("unit"),
+            "asOf": historical.get("asOf"),
+            "percentile": historical.get("percentile"),
+            "riskScore": historical.get("riskScore"),
+            "alertScore": historical.get("alertScore"),
+            "severity": historical.get("severity"),
+            "error": historical.get("error"),
+        },
+        "now": {
+            "ok": (current or {}).get("ok", False),
+            "latest": (current or {}).get("latest"),
+            "unit": (current or historical).get("unit"),
+            "asOf": (current or {}).get("asOf"),
+            "percentile": (current or {}).get("percentile"),
+            "riskScore": (current or {}).get("riskScore"),
+            "alertScore": (current or {}).get("alertScore"),
+            "severity": (current or {}).get("severity"),
+        },
+    }
+
+
+def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
+    metric_configs = {metric.get("id"): metric for metric in catalog.get("metrics", [])}
+    studies = []
+    for study in catalog.get("caseStudies", []):
+        as_of_date = parse_date(study.get("asOf"))
+        if not as_of_date:
+            continue
+        threshold = int(study.get("threshold") or 45)
+        pillars_config = study.get("pillars") or []
+        metric_to_pillar = {}
+        ordered_metric_ids = []
+        if pillars_config:
+            for pillar in pillars_config:
+                for metric_id in pillar.get("metricIds", []):
+                    if metric_id not in ordered_metric_ids:
+                        ordered_metric_ids.append(metric_id)
+                    metric_to_pillar.setdefault(
+                        metric_id,
+                        {
+                            "id": pillar.get("id"),
+                            "name": pillar.get("name"),
+                        },
+                    )
+        for metric_id in study.get("metricIds", []):
+            if metric_id not in ordered_metric_ids:
+                ordered_metric_ids.append(metric_id)
+
+        rows = []
+        for metric_id in ordered_metric_ids:
+            metric_config = metric_configs.get(metric_id)
+            if not metric_config:
+                continue
+            historical = analyze_metric_as_of(metric_config, as_of_date, refresh=refresh, demo=demo)
+            current = current_by_id.get(metric_id)
+            rows.append(case_metric_payload(metric_id, historical, current, threshold, metric_to_pillar.get(metric_id)))
+
+        case_flags = [row for row in rows if row.get("caseFlag")]
+        matched = [row for row in rows if row.get("status") == "matched"]
+        not_yet = [row for row in rows if row.get("status") == "not_yet"]
+        now_only = [row for row in rows if row.get("status") == "now_only"]
+        if case_flags:
+            weighted = [
+                clamp((row["now"].get("riskScore") or 0) / float(max(row["case"].get("riskScore") or 1, 1)) * 100.0, 0.0, 100.0)
+                for row in case_flags
+            ]
+            match_score = int(round(sum(weighted) / float(len(weighted))))
+        else:
+            match_score = 0
+
+        rows.sort(
+            key=lambda row: (
+                {"matched": 0, "not_yet": 1, "now_only": 2, "quiet": 3}.get(row.get("status"), 4),
+                -(row.get("case", {}).get("riskScore") or 0),
+                -(row.get("now", {}).get("riskScore") or 0),
+            )
+        )
+
+        pillars = []
+        for pillar in pillars_config:
+            pillar_ids = set(pillar.get("metricIds", []))
+            pillar_rows = [row for row in rows if row.get("id") in pillar_ids]
+            pillar_case_flags = [row for row in pillar_rows if row.get("caseFlag")]
+            if pillar_case_flags:
+                pillar_weighted = [
+                    clamp((row["now"].get("riskScore") or 0) / float(max(row["case"].get("riskScore") or 1, 1)) * 100.0, 0.0, 100.0)
+                    for row in pillar_case_flags
+                ]
+                pillar_match_score = int(round(sum(pillar_weighted) / float(len(pillar_weighted))))
+            else:
+                pillar_match_score = 0
+            pillars.append(
+                {
+                    "id": pillar.get("id"),
+                    "name": pillar.get("name"),
+                    "reportRead": pillar.get("reportRead"),
+                    "todayRead": pillar.get("todayRead"),
+                    "matchScore": pillar_match_score,
+                    "caseAlertCount": len(pillar_case_flags),
+                    "matchedCount": len([row for row in pillar_rows if row.get("status") == "matched"]),
+                    "notYetCount": len([row for row in pillar_rows if row.get("status") == "not_yet"]),
+                    "nowOnlyCount": len([row for row in pillar_rows if row.get("status") == "now_only"]),
+                    "metricIds": list(pillar.get("metricIds", [])),
+                }
+            )
+
+        studies.append(
+            {
+                "id": study.get("id"),
+                "name": study.get("name"),
+                "asOf": date_to_iso(as_of_date),
+                "shockDate": study.get("shockDate"),
+                "market": study.get("market"),
+                "summary": study.get("summary"),
+                "lesson": study.get("lesson"),
+                "reportBasis": study.get("reportBasis"),
+                "currentRead": study.get("currentRead"),
+                "threshold": threshold,
+                "matchScore": match_score,
+                "caseAlertCount": len(case_flags),
+                "matchedCount": len(matched),
+                "notYetCount": len(not_yet),
+                "nowOnlyCount": len(now_only),
+                "pillars": pillars,
+                "metrics": rows,
+            }
+        )
+    studies.sort(key=lambda item: item.get("asOf") or "")
+    return studies
+
+
 def scenario_score(scenario, metrics_by_id):
     selected = []
     metric_ids = set(scenario.get("metricIds", []))
@@ -1187,6 +1388,7 @@ def build_monitor(refresh=False, demo=False):
     scenarios = [scenario_score(item, metrics_by_id) for item in catalog.get("scenarios", [])]
     scenarios.sort(key=lambda item: item.get("score", 0), reverse=True)
     countries = build_country_matrix(catalog, results)
+    case_studies = build_case_studies(catalog, metrics_by_id, refresh=refresh, demo=demo)
 
     ok = [item for item in results if item.get("ok")]
     unavailable = [item for item in results if not item.get("ok")]
@@ -1207,6 +1409,7 @@ def build_monitor(refresh=False, demo=False):
         "events": catalog.get("events", []),
         "scenarios": scenarios,
         "countries": countries,
+        "caseStudies": case_studies,
         "extremes": [
             {
                 "id": item["id"],

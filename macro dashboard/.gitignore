@@ -1,4 +1,6 @@
 .cache/
+.deps/
+report/
 __pycache__/
 *.pyc
 .DS_Store

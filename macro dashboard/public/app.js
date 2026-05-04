@@ -6,6 +6,8 @@ const state = {
   sort: "alert",
   query: "",
   window: "5Y",
+  view: window.location.hash === "#case-studies" ? "cases" : "monitor",
+  selectedCaseId: null,
   seriesCache: new Map(),
   loading: false,
   demo: new URLSearchParams(window.location.search).get("demo") === "1",
@@ -18,6 +20,16 @@ const els = {
   metricRows: document.getElementById("metricRows"),
   scenarioGrid: document.getElementById("scenarioGrid"),
   countryGrid: document.getElementById("countryGrid"),
+  monitorView: document.getElementById("monitorView"),
+  caseView: document.getElementById("caseView"),
+  monitorTopbar: document.getElementById("monitorTopbar"),
+  caseTopbar: document.getElementById("caseTopbar"),
+  viewNav: document.getElementById("viewNav"),
+  backToMonitorBtn: document.getElementById("backToMonitorBtn"),
+  caseTabs: document.getElementById("caseTabs"),
+  caseDetail: document.getElementById("caseDetail"),
+  casePillars: document.getElementById("casePillars"),
+  caseRows: document.getElementById("caseRows"),
   inspector: document.getElementById("inspector"),
   searchInput: document.getElementById("searchInput"),
   refreshBtn: document.getElementById("refreshBtn"),
@@ -156,6 +168,10 @@ function applyMonitorPayload(payload, options = {}) {
     const first = payload.metrics.find((metric) => metric.ok);
     state.selectedId = first ? first.id : null;
   }
+  if (!state.selectedCaseId) {
+    const firstCase = (payload.caseStudies || [])[0];
+    state.selectedCaseId = firstCase ? firstCase.id : null;
+  }
   renderAll();
   if (state.selectedId) selectMetric(state.selectedId, { quiet: true });
   if (!options.quiet) {
@@ -206,6 +222,19 @@ async function refreshMonitorInBackground() {
 
 function renderLoading() {
   els.metricRows.innerHTML = `<div class="loading-block">Pulling public data and scoring anomalies...</div>`;
+  if (els.caseRows) {
+    els.caseRows.innerHTML = `<div class="loading-block">Replaying historical framework...</div>`;
+  }
+  if (els.casePillars) {
+    els.casePillars.innerHTML = Array.from({ length: 5 }).map(() => `
+      <div class="case-pillar loading"><span class="score-ring small" style="--score:0">--</span><strong>Loading pillar</strong></div>
+    `).join("");
+  }
+  if (els.caseTabs) {
+    els.caseTabs.innerHTML = Array.from({ length: 4 }).map(() => `
+      <div class="case-tab loading"><span class="score-ring small" style="--score:0">--</span><strong>Loading case</strong><em>waiting</em></div>
+    `).join("");
+  }
   if (els.countryGrid) {
     els.countryGrid.innerHTML = `
       <div class="country-header">
@@ -243,6 +272,7 @@ function renderError(error) {
 
 function renderAll() {
   if (!state.monitor) return;
+  renderView();
   renderTopStatus();
   renderSources();
   renderNavs();
@@ -250,6 +280,26 @@ function renderAll() {
   renderScenarios();
   renderRows();
   renderInspector();
+  renderCaseStudies();
+}
+
+function setView(view, options = {}) {
+  state.view = view === "cases" ? "cases" : "monitor";
+  if (!options.quiet) {
+    window.location.hash = state.view === "cases" ? "case-studies" : "";
+  }
+  renderView();
+}
+
+function renderView() {
+  const showCases = state.view === "cases";
+  els.monitorView.hidden = showCases;
+  els.monitorTopbar.hidden = showCases;
+  els.caseView.hidden = !showCases;
+  els.caseTopbar.hidden = !showCases;
+  els.viewNav?.querySelectorAll("button[data-view]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === state.view);
+  });
 }
 
 function renderTopStatus() {
@@ -409,6 +459,146 @@ function renderCountries() {
       `;
     }).join("")}
   `;
+}
+
+function caseStatusLabel(status) {
+  return {
+    matched: "Matched",
+    not_yet: "Missing now",
+    now_only: "Now-only",
+    quiet: "Quiet"
+  }[status] || "Unknown";
+}
+
+function caseStatusNote(status) {
+  return {
+    matched: "Then fired and now fires",
+    not_yet: "Then fired; now below threshold",
+    now_only: "Quiet then; firing now",
+    quiet: "No alert in either window"
+  }[status] || "";
+}
+
+function caseValueBlock(side) {
+  if (!side?.ok) return `<span class="case-value muted">Unavailable</span>`;
+  return `
+    <span class="case-value ${cssSeverity(side.severity)}">
+      <strong>${formatValue(side.latest, side.unit)}</strong>
+      <em>${side.riskScore ?? "--"} risk / ${formatPercentile(side.percentile)} / ${formatDate(side.asOf)}</em>
+    </span>
+  `;
+}
+
+function summarizePillarRows(rows) {
+  const active = rows.filter((row) => row.status !== "quiet");
+  if (!active.length) return `<span class="case-mini-signal muted">No active public-data signal</span>`;
+  return active.slice(0, 4).map((row) => `
+    <span class="case-mini-signal ${row.status}">
+      <strong>${escapeHtml(row.short || row.name)}</strong>
+      <em>${caseStatusLabel(row.status)}</em>
+    </span>
+  `).join("");
+}
+
+function renderCaseStudies() {
+  if (!els.caseTabs || !els.caseRows || !els.caseDetail || !els.casePillars) return;
+  const studies = state.monitor.caseStudies || [];
+  if (!studies.length) {
+    els.caseTabs.innerHTML = "";
+    els.casePillars.innerHTML = "";
+    els.caseDetail.innerHTML = `<div class="empty-state"><span class="empty-dot"></span><h3>No case study</h3><p>The research framework is not available in the current payload.</p></div>`;
+    els.caseRows.innerHTML = "";
+    return;
+  }
+  if (!state.selectedCaseId || !studies.some((study) => study.id === state.selectedCaseId)) {
+    state.selectedCaseId = studies[0].id;
+  }
+  const selected = studies.find((study) => study.id === state.selectedCaseId) || studies[0];
+
+  els.caseTabs.innerHTML = studies.map((study) => `
+    <button type="button" class="case-tab ${study.id === selected.id ? "active" : ""}" data-case="${escapeHtml(study.id)}">
+      <span class="score-ring small" style="--score:${study.matchScore || 0}">${study.matchScore || 0}</span>
+      <span>
+        <strong>${escapeHtml(study.name)}</strong>
+        <em>${study.matchedCount || 0}/${study.caseAlertCount || 0} public signals match · as-of ${formatDate(study.asOf)}</em>
+      </span>
+    </button>
+  `).join("");
+
+  const rows = selected.metrics || [];
+  const matched = rows.filter((row) => row.status === "matched");
+  const notYet = rows.filter((row) => row.status === "not_yet");
+  const nowOnly = rows.filter((row) => row.status === "now_only");
+  els.caseDetail.innerHTML = `
+    <div class="case-detail-head">
+      <div>
+        <p class="eyebrow">${escapeHtml(formatDate(selected.asOf))} / shock ${escapeHtml(formatDate(selected.shockDate))}</p>
+        <h3>${escapeHtml(selected.name)}</h3>
+        <p>${escapeHtml(selected.market || "")}</p>
+      </div>
+      <div class="big-score">${selected.matchScore || 0}</div>
+    </div>
+    <div class="case-stats">
+      <div><span class="metric-label">Framework match</span><strong>${selected.matchScore || 0}</strong></div>
+      <div><span class="metric-label">Matched</span><strong>${matched.length}</strong></div>
+      <div><span class="metric-label">Now-only</span><strong>${nowOnly.length}</strong></div>
+    </div>
+    <div class="case-read-grid">
+      <div>
+        <span class="metric-label">How reports inform indicators</span>
+        <p>${escapeHtml(selected.reportBasis || "Reports define the questions and candidate indicators; public data decides whether the setup is actually present.")}</p>
+      </div>
+      <div>
+        <span class="metric-label">Current verification</span>
+        <p>${escapeHtml(selected.currentRead || "Current public readings are checked independently against the historical framework.")}</p>
+      </div>
+    </div>
+    <ul class="analysis-list">
+      <li>${escapeHtml(selected.summary || "")}</li>
+      <li>${escapeHtml(selected.lesson || "")}</li>
+      <li>This is not a forecast copied from any report: historical scores use only data dated on or before ${escapeHtml(formatDate(selected.asOf))}; current scores use the latest public observations.</li>
+    </ul>
+  `;
+
+  els.casePillars.innerHTML = (selected.pillars || []).map((pillar) => {
+    const pillarRows = rows.filter((row) => (pillar.metricIds || []).includes(row.id));
+    return `
+      <article class="case-pillar">
+        <div class="case-pillar-head">
+          <span class="score-ring small" style="--score:${pillar.matchScore || 0}">${pillar.matchScore || 0}</span>
+          <div>
+            <strong>${escapeHtml(pillar.name || "Pillar")}</strong>
+            <em>${pillar.matchedCount || 0}/${pillar.caseAlertCount || 0} matched · ${pillar.nowOnlyCount || 0} now-only</em>
+          </div>
+        </div>
+        <div class="case-pillar-read">
+          <span class="metric-label">Indicator logic</span>
+          <p>${escapeHtml(pillar.reportRead || "")}</p>
+        </div>
+        <div class="case-pillar-read">
+          <span class="metric-label">Public-data check</span>
+          <p>${escapeHtml(pillar.todayRead || "")}</p>
+        </div>
+        <div class="case-mini-signals">${summarizePillarRows(pillarRows)}</div>
+      </article>
+    `;
+  }).join("");
+
+  els.caseRows.innerHTML = rows.map((row) => `
+    <button type="button" class="case-row ${row.status}" data-id="${escapeHtml(row.id)}">
+      <span class="case-status">
+        <strong>${caseStatusLabel(row.status)}</strong>
+        <em>${caseStatusNote(row.status)}</em>
+      </span>
+      <span class="indicator-cell">
+        <strong>${escapeHtml(row.short || row.name)}</strong>
+        <span>${escapeHtml(row.name || "")}</span>
+        <small>${escapeHtml(row.pillar?.name || row.group || "")}</small>
+      </span>
+      ${caseValueBlock(row.case)}
+      ${caseValueBlock(row.now)}
+    </button>
+  `).join("");
 }
 
 function renderRows() {
@@ -709,6 +899,28 @@ function drawDetailChart(metric) {
 }
 
 function wireEvents() {
+  els.viewNav?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-view]");
+    if (!button) return;
+    setView(button.dataset.view);
+  });
+
+  els.backToMonitorBtn?.addEventListener("click", () => setView("monitor"));
+
+  els.caseTabs?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-case]");
+    if (!button) return;
+    state.selectedCaseId = button.dataset.case;
+    renderCaseStudies();
+  });
+
+  els.caseRows?.addEventListener("click", (event) => {
+    const row = event.target.closest(".case-row[data-id]");
+    if (!row) return;
+    selectMetric(row.dataset.id);
+    setView("monitor");
+  });
+
   els.groupNav.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-group]");
     if (!button) return;
@@ -780,8 +992,14 @@ function wireEvents() {
     const series = state.seriesCache.get(state.selectedId);
     if (series?.points) drawDetailChart(series);
   });
+
+  window.addEventListener("hashchange", () => {
+    const nextView = window.location.hash === "#case-studies" ? "cases" : "monitor";
+    if (nextView !== state.view) setView(nextView, { quiet: true });
+  });
 }
 
 wireEvents();
+renderView();
 loadMonitor(false);
 window.setInterval(() => loadMonitor(false), 15 * 60 * 1000);

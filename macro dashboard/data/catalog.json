@@ -39,19 +39,158 @@
     }
   ],
   "countries": [
-    {"code": "USA", "short": "US", "name": "United States", "region": "North America", "debtSeries": "GGGDTAUSA188N", "yield10ySeries": "IRLTLT01USM156N", "tags": ["us", "reserve_currency"]},
-    {"code": "JPN", "short": "Japan", "name": "Japan", "region": "Asia", "debtSeries": "GGGDTAJPA188N", "yield10ySeries": "IRLTLT01JPM156N", "tags": ["japan", "carry"]},
-    {"code": "CHN", "short": "China", "name": "China", "region": "Asia", "debtSeries": "GGGDTACNA188N", "tags": ["china", "growth"]},
-    {"code": "DEU", "short": "Germany", "name": "Germany", "region": "Europe", "debtSeries": "GGGDTADEA188N", "yield10ySeries": "IRLTLT01DEM156N", "tags": ["europe", "core_europe"]},
-    {"code": "FRA", "short": "France", "name": "France", "region": "Europe", "debtSeries": "GGGDTAFRA188N", "yield10ySeries": "IRLTLT01FRM156N", "tags": ["europe", "core_europe"]},
-    {"code": "ITA", "short": "Italy", "name": "Italy", "region": "Europe", "debtSeries": "GGGDTAITA188N", "yield10ySeries": "IRLTLT01ITM156N", "tags": ["europe", "periphery"]},
-    {"code": "GBR", "short": "UK", "name": "United Kingdom", "region": "Europe", "debtSeries": "GGGDTAGBA188N", "yield10ySeries": "IRLTLT01GBM156N", "tags": ["uk", "europe"]},
-    {"code": "CAN", "short": "Canada", "name": "Canada", "region": "North America", "debtSeries": "GGGDTACAA188N", "yield10ySeries": "IRLTLT01CAM156N", "tags": ["canada"]},
-    {"code": "IND", "short": "India", "name": "India", "region": "Asia", "debtSeries": "GGGDTAINA188N", "tags": ["india", "em"]},
-    {"code": "BRA", "short": "Brazil", "name": "Brazil", "region": "Latin America", "debtSeries": "GGGDTABRA188N", "tags": ["brazil", "em"]},
-    {"code": "MEX", "short": "Mexico", "name": "Mexico", "region": "Latin America", "debtSeries": "GGGDTAMXA188N", "yield10ySeries": "IRLTLT01MXM156N", "tags": ["mexico", "em"]},
-    {"code": "KOR", "short": "Korea", "name": "South Korea", "region": "Asia", "debtSeries": "GGGDTAKRA188N", "yield10ySeries": "IRLTLT01KRM156N", "tags": ["korea", "asia"]},
-    {"code": "AUS", "short": "Australia", "name": "Australia", "region": "Asia-Pacific", "debtSeries": "GGGDTAAUA188N", "yield10ySeries": "IRLTLT01AUM156N", "tags": ["australia", "commodity"]}
+    {
+      "code": "USA",
+      "short": "US",
+      "name": "United States",
+      "region": "North America",
+      "debtSeries": "GGGDTAUSA188N",
+      "yield10ySeries": "IRLTLT01USM156N",
+      "tags": [
+        "us",
+        "reserve_currency"
+      ]
+    },
+    {
+      "code": "JPN",
+      "short": "Japan",
+      "name": "Japan",
+      "region": "Asia",
+      "debtSeries": "GGGDTAJPA188N",
+      "yield10ySeries": "IRLTLT01JPM156N",
+      "tags": [
+        "japan",
+        "carry"
+      ]
+    },
+    {
+      "code": "CHN",
+      "short": "China",
+      "name": "China",
+      "region": "Asia",
+      "debtSeries": "GGGDTACNA188N",
+      "tags": [
+        "china",
+        "growth"
+      ]
+    },
+    {
+      "code": "DEU",
+      "short": "Germany",
+      "name": "Germany",
+      "region": "Europe",
+      "debtSeries": "GGGDTADEA188N",
+      "yield10ySeries": "IRLTLT01DEM156N",
+      "tags": [
+        "europe",
+        "core_europe"
+      ]
+    },
+    {
+      "code": "FRA",
+      "short": "France",
+      "name": "France",
+      "region": "Europe",
+      "debtSeries": "GGGDTAFRA188N",
+      "yield10ySeries": "IRLTLT01FRM156N",
+      "tags": [
+        "europe",
+        "core_europe"
+      ]
+    },
+    {
+      "code": "ITA",
+      "short": "Italy",
+      "name": "Italy",
+      "region": "Europe",
+      "debtSeries": "GGGDTAITA188N",
+      "yield10ySeries": "IRLTLT01ITM156N",
+      "tags": [
+        "europe",
+        "periphery"
+      ]
+    },
+    {
+      "code": "GBR",
+      "short": "UK",
+      "name": "United Kingdom",
+      "region": "Europe",
+      "debtSeries": "GGGDTAGBA188N",
+      "yield10ySeries": "IRLTLT01GBM156N",
+      "tags": [
+        "uk",
+        "europe"
+      ]
+    },
+    {
+      "code": "CAN",
+      "short": "Canada",
+      "name": "Canada",
+      "region": "North America",
+      "debtSeries": "GGGDTACAA188N",
+      "yield10ySeries": "IRLTLT01CAM156N",
+      "tags": [
+        "canada"
+      ]
+    },
+    {
+      "code": "IND",
+      "short": "India",
+      "name": "India",
+      "region": "Asia",
+      "debtSeries": "GGGDTAINA188N",
+      "tags": [
+        "india",
+        "em"
+      ]
+    },
+    {
+      "code": "BRA",
+      "short": "Brazil",
+      "name": "Brazil",
+      "region": "Latin America",
+      "debtSeries": "GGGDTABRA188N",
+      "tags": [
+        "brazil",
+        "em"
+      ]
+    },
+    {
+      "code": "MEX",
+      "short": "Mexico",
+      "name": "Mexico",
+      "region": "Latin America",
+      "debtSeries": "GGGDTAMXA188N",
+      "yield10ySeries": "IRLTLT01MXM156N",
+      "tags": [
+        "mexico",
+        "em"
+      ]
+    },
+    {
+      "code": "KOR",
+      "short": "Korea",
+      "name": "South Korea",
+      "region": "Asia",
+      "debtSeries": "GGGDTAKRA188N",
+      "yield10ySeries": "IRLTLT01KRM156N",
+      "tags": [
+        "korea",
+        "asia"
+      ]
+    },
+    {
+      "code": "AUS",
+      "short": "Australia",
+      "name": "Australia",
+      "region": "Asia-Pacific",
+      "debtSeries": "GGGDTAAUA188N",
+      "yield10ySeries": "IRLTLT01AUM156N",
+      "tags": [
+        "australia",
+        "commodity"
+      ]
+    }
   ],
   "countryMetricTemplates": [
     {
@@ -67,7 +206,11 @@
       "changeMode": "diff",
       "countryRole": "debt",
       "riskDirection": "high",
-      "tags": ["sovereign", "debt", "fiscal"],
+      "tags": [
+        "sovereign",
+        "debt",
+        "fiscal"
+      ],
       "why": "General government gross debt to GDP is a slow-moving fiscal fragility gauge; high or rising readings can reduce policy room and raise refinancing sensitivity."
     },
     {
@@ -82,7 +225,11 @@
       "transform": "level",
       "countryRole": "yield10y",
       "riskDirection": "high",
-      "tags": ["sovereign", "rates", "refinancing"],
+      "tags": [
+        "sovereign",
+        "rates",
+        "refinancing"
+      ],
       "why": "Long-term government bond yields are the market price of sovereign refinancing pressure and duration risk."
     },
     {
@@ -98,7 +245,11 @@
       "transform": "level",
       "countryRole": "growth",
       "riskDirection": "low",
-      "tags": ["country_macro", "growth", "gdp_growth"],
+      "tags": [
+        "country_macro",
+        "growth",
+        "gdp_growth"
+      ],
       "why": "Weak real GDP growth points to cyclical stress and a smaller income base for public and private debt."
     },
     {
@@ -114,7 +265,11 @@
       "transform": "level",
       "countryRole": "inflation",
       "riskDirection": "high",
-      "tags": ["country_macro", "inflation", "macro"],
+      "tags": [
+        "country_macro",
+        "inflation",
+        "macro"
+      ],
       "why": "High CPI inflation can force policy tightening, pressure real incomes, and destabilize local bonds and FX."
     },
     {
@@ -130,7 +285,12 @@
       "transform": "level",
       "countryRole": "unemployment",
       "riskDirection": "high",
-      "tags": ["country_macro", "labor", "unemployment", "growth"],
+      "tags": [
+        "country_macro",
+        "labor",
+        "unemployment",
+        "growth"
+      ],
       "why": "Rising unemployment is a direct read on domestic growth stress and political-economy pressure."
     },
     {
@@ -147,7 +307,12 @@
       "changeMode": "diff",
       "countryRole": "currentAccount",
       "riskDirection": "low",
-      "tags": ["country_macro", "external", "current_account", "fx"],
+      "tags": [
+        "country_macro",
+        "external",
+        "current_account",
+        "fx"
+      ],
       "why": "A weak current account can expose countries to funding, FX, and balance-of-payments pressure when global liquidity tightens."
     }
   ],
@@ -156,71 +321,314 @@
       "id": "carry_unwind",
       "name": "JPY carry unwind",
       "description": "Yen funding trade pressure: yen strength, equity volatility, Nikkei stress, U.S. rate compression, and broad risk-off.",
-      "metricIds": ["dexjpus", "nikkei225", "vix", "sp500", "dgs10", "t10y2y", "dxy", "hy_oas", "jpn_10y_yield", "jp_us_10y_spread"],
-      "tags": ["carry", "japan", "vol", "risk"]
+      "metricIds": [
+        "dexjpus",
+        "nikkei225",
+        "vix",
+        "sp500",
+        "dgs10",
+        "t10y2y",
+        "dxy",
+        "hy_oas",
+        "jpn_10y_yield",
+        "jp_us_10y_spread"
+      ],
+      "tags": [
+        "carry",
+        "japan",
+        "vol",
+        "risk"
+      ]
     },
     {
       "id": "funding_stress",
       "name": "Funding stress",
       "description": "Bank funding and credit pressure across financial conditions, OAS, money-market rates, volatility, and Fed liquidity plumbing.",
-      "metricIds": ["stlfsi", "nfci", "hy_oas", "corp_oas", "bbb_oas", "sofr", "iorb", "vix", "wresbal"],
-      "tags": ["funding", "credit", "stress", "liquidity"]
+      "metricIds": [
+        "stlfsi",
+        "nfci",
+        "hy_oas",
+        "corp_oas",
+        "bbb_oas",
+        "sofr",
+        "iorb",
+        "vix",
+        "wresbal"
+      ],
+      "tags": [
+        "funding",
+        "credit",
+        "stress",
+        "liquidity"
+      ]
     },
     {
       "id": "inflation_shock",
       "name": "Inflation shock",
       "description": "Price pressure impulse from realized inflation, breakevens, oil, gasoline, natural gas, and inflation expectations.",
-      "metricIds": ["cpi_yoy", "core_cpi_yoy", "pce_yoy", "core_pce_yoy", "ppi_yoy", "t10yie", "t5yie", "wti", "brent", "gasoline", "mich"],
-      "tags": ["inflation", "energy", "breakeven"]
+      "metricIds": [
+        "cpi_yoy",
+        "core_cpi_yoy",
+        "pce_yoy",
+        "core_pce_yoy",
+        "ppi_yoy",
+        "t10yie",
+        "t5yie",
+        "wti",
+        "brent",
+        "gasoline",
+        "mich"
+      ],
+      "tags": [
+        "inflation",
+        "energy",
+        "breakeven"
+      ]
     },
     {
       "id": "growth_scare",
       "name": "Growth scare",
       "description": "Real-economy deterioration: labor stress, production weakness, retail softness, housing slowdown, and survey contraction.",
-      "metricIds": ["unrate", "payems_3m", "icsa", "ccsa", "indpro_yoy", "retail_sales_yoy", "housing_starts", "permits", "umcsent", "napm"],
-      "tags": ["growth", "labor", "housing"]
+      "metricIds": [
+        "unrate",
+        "payems_3m",
+        "icsa",
+        "ccsa",
+        "indpro_yoy",
+        "retail_sales_yoy",
+        "housing_starts",
+        "permits",
+        "umcsent",
+        "napm"
+      ],
+      "tags": [
+        "growth",
+        "labor",
+        "housing"
+      ]
     },
     {
       "id": "liquidity_drain",
       "name": "Liquidity drain",
       "description": "Balance-sheet and reserve pressure from Fed QT, reserve balances, TGA, RRP, broad dollar strength, and high front-end rates.",
-      "metricIds": ["walcl_yoy", "wresbal", "tga", "rrp", "m2_yoy", "dxy", "dgs3mo", "sofr"],
-      "tags": ["liquidity", "dollar", "rates"]
+      "metricIds": [
+        "walcl_yoy",
+        "wresbal",
+        "tga",
+        "rrp",
+        "m2_yoy",
+        "dxy",
+        "dgs3mo",
+        "sofr"
+      ],
+      "tags": [
+        "liquidity",
+        "dollar",
+        "rates"
+      ]
     },
     {
       "id": "risk_off",
       "name": "Cross-asset risk-off",
       "description": "Market stress visible in volatility, credit spreads, equities, dollar strength, oil stress, and curve behavior.",
-      "metricIds": ["vix", "sp500", "nasdaq", "hy_oas", "corp_oas", "dxy", "wti", "t10y2y", "sp500_cape", "buffett_indicator"],
-      "tags": ["market", "risk", "vol", "credit"]
+      "metricIds": [
+        "vix",
+        "vix_low_complacency",
+        "sp500",
+        "nasdaq",
+        "nasdaq_yoy",
+        "nasdaq_sp500_ratio",
+        "hy_oas",
+        "corp_oas",
+        "baa10y",
+        "dxy",
+        "wti",
+        "wti_3m_change",
+        "t10y2y",
+        "sp500_cape",
+        "buffett_indicator"
+      ],
+      "tags": [
+        "market",
+        "risk",
+        "vol",
+        "credit"
+      ]
     },
     {
       "id": "valuation_fragility",
       "name": "Valuation fragility",
-      "description": "Equity valuation pressure across CAPE, PE, earnings yield gaps, market-cap-to-GDP, and liquidity-normalized equity ratios.",
-      "metricIds": ["sp500_cape", "sp500_pe_ttm", "sp500_earnings_yield", "sp500_dividend_yield", "russell2000_pe_ttm", "russell2000_forward_pe", "russell2000_cape", "buffett_indicator", "equity_to_m2", "equity_to_fed_bs", "fed_model_gap", "real_earnings_yield_gap"],
-      "tags": ["valuation", "equity", "ratio"]
+      "description": "Equity valuation and bubble pressure across CAPE, PE, earnings yield gaps, profits, relative tech leadership, and policy-rate pressure.",
+      "metricIds": [
+        "sp500_cape",
+        "sp500_pe_ttm",
+        "sp500_earnings_yield",
+        "sp500_dividend_yield",
+        "sp500_real_earnings_yoy",
+        "corp_profit_gdp",
+        "russell2000_pe_ttm",
+        "russell2000_forward_pe",
+        "russell2000_cape",
+        "buffett_indicator",
+        "equity_to_m2",
+        "equity_to_fed_bs",
+        "fed_model_gap",
+        "real_earnings_yield_gap",
+        "real_policy_rate",
+        "policy_rate_6m_change",
+        "nasdaq_sp500_ratio"
+      ],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio"
+      ]
+    },
+    {
+      "id": "bubble_breadth",
+      "name": "Bubble breadth / AI leadership",
+      "description": "Report-informed dot-com style checklist: tech leadership, narrow breadth proxies, valuation cushions, real-rate pressure, and low-vol complacency.",
+      "metricIds": [
+        "nasdaq_sp500_ratio",
+        "nasdaq_yoy",
+        "sox_sp500_ratio",
+        "sp500_cape",
+        "sp500_pe_ttm",
+        "sp500_dividend_yield",
+        "sp500_real_earnings_yoy",
+        "corp_profit_gdp",
+        "fed_model_gap",
+        "real_policy_rate",
+        "policy_rate_6m_change",
+        "vix_low_complacency",
+        "baa10y"
+      ],
+      "tags": [
+        "bubble",
+        "tech",
+        "breadth",
+        "momentum",
+        "valuation"
+      ]
     },
     {
       "id": "sovereign_refinancing",
       "name": "Sovereign refinancing",
       "description": "Country-level debt fragility across government debt loads, long-term bond yields, and sovereign spread pressure.",
-      "metricIds": ["it_de_10y_spread", "fr_de_10y_spread", "uk_de_10y_spread", "jp_us_10y_spread"],
-      "tags": ["sovereign", "debt", "refinancing", "fiscal"]
+      "metricIds": [
+        "it_de_10y_spread",
+        "fr_de_10y_spread",
+        "uk_de_10y_spread",
+        "jp_us_10y_spread"
+      ],
+      "tags": [
+        "sovereign",
+        "debt",
+        "refinancing",
+        "fiscal"
+      ]
     },
     {
       "id": "country_macro_shock",
       "name": "Country macro shock",
       "description": "Large-country macro deterioration across growth, inflation, labor markets, and domestic policy stress.",
       "metricIds": [],
-      "tags": ["country_macro"]
+      "tags": [
+        "country_macro"
+      ]
     },
     {
       "id": "external_vulnerability",
       "name": "External vulnerability",
       "description": "Balance-of-payments and FX pressure from current-account weakness, dollar strength, and country-specific external stress.",
-      "metricIds": ["dxy", "dexcnh", "dexuseu"],
-      "tags": ["external", "current_account", "fx", "dollar"]
+      "metricIds": [
+        "dxy",
+        "dexcnh",
+        "dexuseu"
+      ],
+      "tags": [
+        "external",
+        "current_account",
+        "fx",
+        "dollar"
+      ]
+    }
+  ],
+  "caseStudies": [
+    {
+      "id": "dotcom_ai_template",
+      "name": "Dot-com / AI analogue",
+      "asOf": "2000-03-10",
+      "shockDate": "2000-03-10",
+      "market": "NASDAQ peak before the 2000-2002 equity unwind",
+      "summary": "The report-informed question set is intentionally narrow: equity valuation and tech leadership were extreme, while classic credit and labor stress were not the main early warning at the peak.",
+      "lesson": "Treat it as a fragility checklist, not a crash timer. The dangerous setup is valuation plus narrow leadership plus tightening/low risk premium; the catalyst can arrive later.",
+      "reportBasis": "Local 2000 reports were used only to extract candidate questions: valuation cushion, risk premia, real rates, profit expectations, internet-sector P/E and P/S extremes, IPO/new-issue pressure, and dispersion across internet subsectors.",
+      "currentRead": "Recent reports are treated the same way: they suggest questions about breadth, AI/semi leadership, positioning, earnings expectations, IPO appetite, oil/inflation tails, and left-tail hedging. Public data decides whether those questions are active.",
+      "threshold": 45,
+      "pillars": [
+        {
+          "id": "valuation",
+          "name": "Valuation cushion",
+          "reportRead": "2000 work asked whether the new economy justified elevated valuations; useful signals are CAPE, PE, dividend/earnings yield, and market-cap-to-GDP style ratios.",
+          "todayRead": "Checks whether current valuation leaves little cushion if AI earnings or discount-rate assumptions wobble.",
+          "metricIds": [
+            "sp500_cape",
+            "sp500_pe_ttm",
+            "sp500_earnings_yield",
+            "sp500_dividend_yield",
+            "buffett_indicator",
+            "fed_model_gap",
+            "real_earnings_yield_gap"
+          ]
+        },
+        {
+          "id": "leadership",
+          "name": "Leadership and breadth",
+          "reportRead": "Internet reports show extreme sector multiples and sharp internet/technology leadership; recent reports call out breadth near dot-com-like narrowness.",
+          "todayRead": "Uses public proxies for tech dominance and momentum: NASDAQ relative performance, NASDAQ one-year momentum, and semiconductors versus the market.",
+          "metricIds": [
+            "nasdaq_sp500_ratio",
+            "nasdaq_yoy",
+            "sox_sp500_ratio"
+          ]
+        },
+        {
+          "id": "earnings",
+          "name": "Profit assumptions",
+          "reportRead": "The 2000 bullish case depended on realized earnings growth and improved profit expectations; that makes profit growth and margins part of the bubble diagnosis.",
+          "todayRead": "Flags whether current equity strength rests on unusually strong earnings growth or high aggregate margins.",
+          "metricIds": [
+            "sp500_real_earnings_yoy",
+            "corp_profit_gdp"
+          ]
+        },
+        {
+          "id": "rates",
+          "name": "Rates and risk premia",
+          "reportRead": "The new-economy valuation case explicitly used lower risk premia and lower real rates; Fed tightening is the pressure point when that assumption reverses.",
+          "todayRead": "Compares today with the 2000 setup through real policy rates, recent Fed tightening, the curve, and long-history credit spreads.",
+          "metricIds": [
+            "real_policy_rate",
+            "policy_rate_6m_change",
+            "dgs10",
+            "t10y2y",
+            "baa10y"
+          ]
+        },
+        {
+          "id": "complacency",
+          "name": "Complacency and tails",
+          "reportRead": "A bubble can keep rising while volatility is quiet; low-vol regimes become more dangerous when valuation and leadership signals are already stretched.",
+          "todayRead": "Recent desk reports mention low implied volatility, downside demand, and oil/inflation tails; this pillar separates complacency from already-realized stress.",
+          "metricIds": [
+            "vix_low_complacency",
+            "vix",
+            "wti_3m_change",
+            "t10yie"
+          ]
+        }
+      ]
     }
   ],
   "events": [
@@ -273,7 +681,12 @@
       "unit": "x",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "ratio", "bubble"],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio",
+        "bubble"
+      ],
       "why": "CAPE compares equity prices with a 10-year smoothed earnings base; very high readings flag expensive long-cycle equity valuation."
     },
     {
@@ -288,7 +701,11 @@
       "unit": "x",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "ratio"],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio"
+      ],
       "why": "Trailing PE captures how much investors pay for realized earnings; high readings can make markets more fragile to rate or earnings shocks."
     },
     {
@@ -303,7 +720,12 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["valuation", "equity", "ratio", "yield"],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio",
+        "yield"
+      ],
       "why": "Low earnings yield means investors receive little earnings compensation for equity risk."
     },
     {
@@ -318,8 +740,297 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["valuation", "equity", "ratio", "yield"],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio",
+        "yield"
+      ],
       "why": "Low dividend yield is a simple long-history valuation pressure gauge."
+    },
+    {
+      "id": "sp500_price_long",
+      "provider": "multpl",
+      "sourceId": "s-p-500-historical-prices",
+      "name": "S&P 500 long-history price",
+      "short": "S&P long",
+      "group": "Markets",
+      "region": "US",
+      "frequency": "monthly",
+      "unit": "index",
+      "transform": "level",
+      "riskDirection": "low",
+      "tags": [
+        "market",
+        "risk",
+        "equity",
+        "long_history"
+      ],
+      "why": "Long-history monthly S&P 500 price series from Multpl is used for pre-2016 case studies because FRED's daily S&P 500 endpoint now has limited recent history."
+    },
+    {
+      "id": "nasdaq_sp500_ratio",
+      "provider": "derived",
+      "sourceId": "NASDAQCOM / S&P 500 long-history price",
+      "name": "NASDAQ Composite relative to S&P 500",
+      "short": "NASDAQ/S&P",
+      "group": "Markets",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "x",
+      "transform": "level",
+      "formula": "ratio",
+      "components": [
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "NASDAQCOM",
+          "frequency": "daily",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "multpl",
+          "sourceId": "s-p-500-historical-prices",
+          "frequency": "monthly",
+          "transform": "level"
+        }
+      ],
+      "riskDirection": "high",
+      "tags": [
+        "market",
+        "equity",
+        "tech",
+        "breadth",
+        "momentum",
+        "bubble"
+      ],
+      "why": "A high NASDAQ/S&P ratio shows tech and growth leadership becoming unusually dominant versus the broad large-cap market, a core dot-com style signal."
+    },
+    {
+      "id": "nasdaq_yoy",
+      "provider": "fred",
+      "sourceId": "NASDAQCOM",
+      "name": "NASDAQ Composite one-year price momentum",
+      "short": "NASDAQ 1Y",
+      "group": "Markets",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "%",
+      "transform": "pct_change",
+      "periods": 252,
+      "riskDirection": "high",
+      "tags": [
+        "market",
+        "equity",
+        "tech",
+        "momentum",
+        "bubble"
+      ],
+      "why": "Fast one-year NASDAQ appreciation flags speculative momentum and crowded growth leadership."
+    },
+    {
+      "id": "sox_sp500_ratio",
+      "provider": "derived",
+      "sourceId": "PHLX Semiconductor Index / S&P 500 long-history price",
+      "name": "Semiconductor leadership relative to S&P 500",
+      "short": "SOX/S&P",
+      "group": "Markets",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "x",
+      "transform": "level",
+      "formula": "ratio",
+      "components": [
+        {
+          "name": "a",
+          "provider": "yahoo",
+          "sourceId": "^SOX",
+          "frequency": "daily",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "multpl",
+          "sourceId": "s-p-500-historical-prices",
+          "frequency": "monthly",
+          "transform": "level"
+        }
+      ],
+      "riskDirection": "high",
+      "tags": [
+        "market",
+        "equity",
+        "tech",
+        "semiconductors",
+        "ai",
+        "momentum",
+        "bubble"
+      ],
+      "why": "Semiconductor outperformance is a cleaner current-cycle proxy for AI infrastructure leadership and potential narrow-market crowding."
+    },
+    {
+      "id": "sp500_real_earnings_yoy",
+      "provider": "multpl",
+      "sourceId": "s-p-500-earnings",
+      "name": "S&P 500 real earnings growth",
+      "short": "S&P EPS YoY",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "monthly",
+      "unit": "%",
+      "transform": "yoy_pct",
+      "periods": 12,
+      "riskDirection": "two-sided",
+      "tags": [
+        "valuation",
+        "earnings",
+        "profit",
+        "bubble"
+      ],
+      "why": "The 2000 new-economy argument leaned on very strong earnings and profit expectations; extreme earnings growth can either justify valuations temporarily or become a mean-reversion risk."
+    },
+    {
+      "id": "corp_profit_gdp",
+      "provider": "fred",
+      "sourceId": "A445RE1A156NBEA",
+      "name": "Corporate profits after tax to GDP",
+      "short": "Profit/GDP",
+      "group": "Valuation",
+      "region": "US",
+      "frequency": "quarterly",
+      "unit": "% GDP",
+      "transform": "level",
+      "riskDirection": "high",
+      "tags": [
+        "valuation",
+        "earnings",
+        "profit",
+        "margin",
+        "macro"
+      ],
+      "why": "High corporate profits relative to GDP indicate unusually rich aggregate margins; that can support valuations but also raises mean-reversion risk."
+    },
+    {
+      "id": "baa10y",
+      "provider": "fred",
+      "sourceId": "BAA10Y",
+      "name": "Moody's Baa corporate bond spread to 10-year Treasury",
+      "short": "Baa-10Y",
+      "group": "Credit",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "pp",
+      "transform": "level",
+      "riskDirection": "high",
+      "tags": [
+        "credit",
+        "risk_premium",
+        "funding",
+        "bubble"
+      ],
+      "why": "Baa-Treasury spread is a long-history credit risk-premium check; quiet credit alongside extreme equity valuation suggests bubble fragility rather than funding crisis."
+    },
+    {
+      "id": "real_policy_rate",
+      "provider": "derived",
+      "sourceId": "DFF - CPI YoY",
+      "name": "Real effective Fed funds rate",
+      "short": "Real policy",
+      "group": "Rates",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "pp",
+      "transform": "level",
+      "formula": "spread",
+      "components": [
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "DFF",
+          "frequency": "daily",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "CPIAUCSL",
+          "frequency": "monthly",
+          "transform": "yoy_pct",
+          "periods": 12
+        }
+      ],
+      "riskDirection": "high",
+      "tags": [
+        "rates",
+        "policy",
+        "real_rate",
+        "bubble",
+        "valuation"
+      ],
+      "why": "A rising real policy rate can prick long-duration equity stories by making funding and discount rates less forgiving."
+    },
+    {
+      "id": "policy_rate_6m_change",
+      "provider": "fred",
+      "sourceId": "DFF",
+      "name": "Six-month Fed funds tightening impulse",
+      "short": "Fed 6M chg",
+      "group": "Rates",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "pp",
+      "transform": "diff",
+      "periods": 180,
+      "riskDirection": "high",
+      "tags": [
+        "rates",
+        "policy",
+        "tightening",
+        "bubble"
+      ],
+      "why": "Rapid Fed tightening is a direct pressure point for high-duration and speculative equities."
+    },
+    {
+      "id": "vix_low_complacency",
+      "provider": "fred",
+      "sourceId": "VIXCLS",
+      "name": "Low VIX complacency gauge",
+      "short": "VIX low",
+      "group": "Markets",
+      "region": "US",
+      "frequency": "daily",
+      "unit": "index",
+      "transform": "level",
+      "riskDirection": "low",
+      "tags": [
+        "market",
+        "vol",
+        "complacency",
+        "bubble"
+      ],
+      "why": "Unusually low implied volatility can mean investors are underpaying for left-tail risk while valuation or positioning risk is building."
+    },
+    {
+      "id": "wti_3m_change",
+      "provider": "fred",
+      "sourceId": "DCOILWTICO",
+      "name": "WTI crude three-month price shock",
+      "short": "WTI 3M",
+      "group": "Commodities",
+      "region": "Global",
+      "frequency": "daily",
+      "unit": "%",
+      "transform": "pct_change",
+      "periods": 63,
+      "riskDirection": "high",
+      "tags": [
+        "commodity",
+        "energy",
+        "inflation",
+        "shock"
+      ],
+      "why": "Recent reports highlight oil and energy shocks as a macro risk that can collide with equity optimism through inflation and margins."
     },
     {
       "id": "russell2000_price",
@@ -334,7 +1045,12 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["valuation", "equity", "small_cap", "russell2000"],
+      "tags": [
+        "valuation",
+        "equity",
+        "small_cap",
+        "russell2000"
+      ],
       "why": "Russell 2000 price history anchors the small-cap valuation ratios from the same public table."
     },
     {
@@ -350,7 +1066,13 @@
       "unit": "x",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "small_cap", "russell2000", "ratio"],
+      "tags": [
+        "valuation",
+        "equity",
+        "small_cap",
+        "russell2000",
+        "ratio"
+      ],
       "why": "Russell 2000 trailing PE tracks how expensive U.S. small caps are relative to realized earnings."
     },
     {
@@ -366,7 +1088,14 @@
       "unit": "x",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "small_cap", "russell2000", "forward_pe", "ratio"],
+      "tags": [
+        "valuation",
+        "equity",
+        "small_cap",
+        "russell2000",
+        "forward_pe",
+        "ratio"
+      ],
       "why": "Russell 2000 forward PE shows small-cap valuation versus expected earnings, useful when trailing earnings are cyclically distorted."
     },
     {
@@ -382,7 +1111,14 @@
       "unit": "x",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "small_cap", "russell2000", "cape", "ratio"],
+      "tags": [
+        "valuation",
+        "equity",
+        "small_cap",
+        "russell2000",
+        "cape",
+        "ratio"
+      ],
       "why": "Russell 2000 CAPE smooths earnings over the cycle and highlights small-cap valuation fragility."
     },
     {
@@ -398,11 +1134,28 @@
       "transform": "level",
       "formula": "ratio_pct_millions_to_billions",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "NCBEILQ027S", "frequency": "quarterly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "GDP", "frequency": "quarterly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "NCBEILQ027S",
+          "frequency": "quarterly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "GDP",
+          "frequency": "quarterly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["valuation", "equity", "ratio", "macro"],
+      "tags": [
+        "valuation",
+        "equity",
+        "ratio",
+        "macro"
+      ],
       "why": "A public-data Buffett indicator proxy: nonfinancial corporate equity market value divided by nominal GDP."
     },
     {
@@ -418,11 +1171,28 @@
       "transform": "level",
       "formula": "ratio_pct_millions_to_billions",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "NCBEILQ027S", "frequency": "quarterly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "M2SL", "frequency": "monthly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "NCBEILQ027S",
+          "frequency": "quarterly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "M2SL",
+          "frequency": "monthly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["valuation", "liquidity", "equity", "ratio"],
+      "tags": [
+        "valuation",
+        "liquidity",
+        "equity",
+        "ratio"
+      ],
       "why": "Normalizes equity market value by broad money; high readings can flag stretched equity valuation relative to liquidity."
     },
     {
@@ -438,11 +1208,28 @@
       "transform": "level",
       "formula": "ratio",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "NCBEILQ027S", "frequency": "quarterly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "WALCL", "frequency": "weekly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "NCBEILQ027S",
+          "frequency": "quarterly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "WALCL",
+          "frequency": "weekly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["valuation", "liquidity", "equity", "ratio"],
+      "tags": [
+        "valuation",
+        "liquidity",
+        "equity",
+        "ratio"
+      ],
       "why": "Compares equity market value with the Fed balance sheet; rising readings can expose valuation dependence on liquidity conditions."
     },
     {
@@ -458,11 +1245,28 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "multpl", "sourceId": "s-p-500-earnings-yield", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "DGS10", "frequency": "daily", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "multpl",
+          "sourceId": "s-p-500-earnings-yield",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "DGS10",
+          "frequency": "daily",
+          "transform": "level"
+        }
       ],
       "riskDirection": "low",
-      "tags": ["valuation", "rates", "equity", "ratio"],
+      "tags": [
+        "valuation",
+        "rates",
+        "equity",
+        "ratio"
+      ],
       "why": "Compares S&P 500 earnings yield with the 10-year Treasury yield; low or negative gaps mean equities offer less yield cushion versus bonds."
     },
     {
@@ -478,11 +1282,29 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "multpl", "sourceId": "s-p-500-earnings-yield", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "DFII10", "frequency": "daily", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "multpl",
+          "sourceId": "s-p-500-earnings-yield",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "DFII10",
+          "frequency": "daily",
+          "transform": "level"
+        }
       ],
       "riskDirection": "low",
-      "tags": ["valuation", "rates", "real_yield", "equity", "ratio"],
+      "tags": [
+        "valuation",
+        "rates",
+        "real_yield",
+        "equity",
+        "ratio"
+      ],
       "why": "Compares equity earnings yield with real Treasury yield; low readings flag valuation fragility when real rates are high."
     },
     {
@@ -503,11 +1325,29 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01ITM156N", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "IRLTLT01ITM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "IRLTLT01DEM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["sovereign", "spread", "refinancing", "europe", "fiscal"],
+      "tags": [
+        "sovereign",
+        "spread",
+        "refinancing",
+        "europe",
+        "fiscal"
+      ],
       "why": "Italy's spread to Germany is a direct market gauge of euro-area sovereign refinancing and fiscal-fragmentation risk."
     },
     {
@@ -528,11 +1368,29 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01FRM156N", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "IRLTLT01FRM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "IRLTLT01DEM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["sovereign", "spread", "refinancing", "europe", "fiscal"],
+      "tags": [
+        "sovereign",
+        "spread",
+        "refinancing",
+        "europe",
+        "fiscal"
+      ],
       "why": "France's spread to Germany helps catch fiscal credibility and euro-area core spread stress before it becomes a headline crisis."
     },
     {
@@ -553,11 +1411,29 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01GBM156N", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01DEM156N", "frequency": "monthly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "IRLTLT01GBM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "IRLTLT01DEM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "high",
-      "tags": ["sovereign", "spread", "refinancing", "uk", "fiscal"],
+      "tags": [
+        "sovereign",
+        "spread",
+        "refinancing",
+        "uk",
+        "fiscal"
+      ],
       "why": "UK-gilt underperformance versus Germany can flag domestic fiscal, inflation, or pension-led duration stress."
     },
     {
@@ -578,11 +1454,29 @@
       "transform": "level",
       "formula": "spread",
       "components": [
-        {"name": "a", "provider": "fred", "sourceId": "IRLTLT01JPM156N", "frequency": "monthly", "transform": "level"},
-        {"name": "b", "provider": "fred", "sourceId": "IRLTLT01USM156N", "frequency": "monthly", "transform": "level"}
+        {
+          "name": "a",
+          "provider": "fred",
+          "sourceId": "IRLTLT01JPM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        },
+        {
+          "name": "b",
+          "provider": "fred",
+          "sourceId": "IRLTLT01USM156N",
+          "frequency": "monthly",
+          "transform": "level"
+        }
       ],
       "riskDirection": "two-sided",
-      "tags": ["sovereign", "spread", "rates", "japan", "carry"],
+      "tags": [
+        "sovereign",
+        "spread",
+        "rates",
+        "japan",
+        "carry"
+      ],
       "why": "Japan-U.S. long-rate spread changes can interact with yen carry trades, hedging costs, and Japanese capital flows."
     },
     {
@@ -597,7 +1491,13 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["market", "risk", "vol", "carry", "stress"],
+      "tags": [
+        "market",
+        "risk",
+        "vol",
+        "carry",
+        "stress"
+      ],
       "why": "Equity implied volatility is the fastest public proxy for forced de-risking."
     },
     {
@@ -612,7 +1512,11 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["market", "risk", "equity"],
+      "tags": [
+        "market",
+        "risk",
+        "equity"
+      ],
       "why": "Large-cap U.S. equity price level; downside momentum matters more than high levels."
     },
     {
@@ -627,7 +1531,12 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["market", "risk", "equity", "growth"],
+      "tags": [
+        "market",
+        "risk",
+        "equity",
+        "growth"
+      ],
       "why": "Tech-heavy equity beta; often amplifies rates and liquidity shocks."
     },
     {
@@ -642,7 +1551,12 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["market", "risk", "japan", "carry"],
+      "tags": [
+        "market",
+        "risk",
+        "japan",
+        "carry"
+      ],
       "why": "Japanese equities are a useful lens on yen carry stress and local risk appetite."
     },
     {
@@ -657,7 +1571,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["rates", "liquidity", "front_end"],
+      "tags": [
+        "rates",
+        "liquidity",
+        "front_end"
+      ],
       "why": "Front-end rates transmit Fed policy into funding and carry costs."
     },
     {
@@ -672,7 +1590,10 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["rates", "policy"],
+      "tags": [
+        "rates",
+        "policy"
+      ],
       "why": "Policy-sensitive rates repricing can hit equities, credit, and FX carry quickly."
     },
     {
@@ -687,7 +1608,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "two-sided",
-      "tags": ["rates", "carry", "market"],
+      "tags": [
+        "rates",
+        "carry",
+        "market"
+      ],
       "why": "The long rate anchors global discount rates; fast moves in either direction can shock positioning."
     },
     {
@@ -702,7 +1627,10 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "two-sided",
-      "tags": ["rates", "duration"],
+      "tags": [
+        "rates",
+        "duration"
+      ],
       "why": "Long-duration yield extremes expose pension, mortgage convexity, and equity valuation pressure."
     },
     {
@@ -717,7 +1645,12 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["rates", "curve", "growth", "carry"],
+      "tags": [
+        "rates",
+        "curve",
+        "growth",
+        "carry"
+      ],
       "why": "Deep inversion or sudden steepening can flag recession risk or policy panic."
     },
     {
@@ -732,7 +1665,11 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["rates", "curve", "growth"],
+      "tags": [
+        "rates",
+        "curve",
+        "growth"
+      ],
       "why": "The 3m10y curve is a classic recession-risk signal when deeply inverted."
     },
     {
@@ -747,7 +1684,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["rates", "real_yield", "market"],
+      "tags": [
+        "rates",
+        "real_yield",
+        "market"
+      ],
       "why": "High real yields tighten financial conditions even when nominal yields look stable."
     },
     {
@@ -762,7 +1703,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["inflation", "breakeven", "rates"],
+      "tags": [
+        "inflation",
+        "breakeven",
+        "rates"
+      ],
       "why": "Market-implied inflation compensation can warn before realized inflation data updates."
     },
     {
@@ -777,7 +1722,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["inflation", "breakeven", "rates"],
+      "tags": [
+        "inflation",
+        "breakeven",
+        "rates"
+      ],
       "why": "The 5-year breakeven catches medium-term inflation scares faster than CPI prints."
     },
     {
@@ -792,7 +1741,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["funding", "liquidity", "rates"],
+      "tags": [
+        "funding",
+        "liquidity",
+        "rates"
+      ],
       "why": "SOFR is the core overnight secured funding rate; spikes matter for leverage."
     },
     {
@@ -807,7 +1760,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["funding", "rates", "policy"],
+      "tags": [
+        "funding",
+        "rates",
+        "policy"
+      ],
       "why": "Fed funds shows the actual overnight policy-rate anchor."
     },
     {
@@ -822,7 +1779,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["funding", "rates", "liquidity"],
+      "tags": [
+        "funding",
+        "rates",
+        "liquidity"
+      ],
       "why": "IORB is the administered rate floor for bank reserve opportunity cost."
     },
     {
@@ -838,7 +1799,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "high",
-      "tags": ["inflation", "macro"],
+      "tags": [
+        "inflation",
+        "macro"
+      ],
       "why": "Headline CPI shocks can force policy repricing and risk-asset multiple compression."
     },
     {
@@ -854,7 +1818,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "high",
-      "tags": ["inflation", "macro"],
+      "tags": [
+        "inflation",
+        "macro"
+      ],
       "why": "Core CPI is stickier and usually more important for Fed reaction risk."
     },
     {
@@ -870,7 +1837,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "high",
-      "tags": ["inflation", "macro"],
+      "tags": [
+        "inflation",
+        "macro"
+      ],
       "why": "PCE is the Fed's preferred inflation gauge."
     },
     {
@@ -886,7 +1856,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "high",
-      "tags": ["inflation", "macro"],
+      "tags": [
+        "inflation",
+        "macro"
+      ],
       "why": "Core PCE persistence is central to Fed reaction-function risk."
     },
     {
@@ -902,7 +1875,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "high",
-      "tags": ["inflation", "macro"],
+      "tags": [
+        "inflation",
+        "macro"
+      ],
       "why": "PPI can flag upstream price pressure before it fully reaches consumers."
     },
     {
@@ -917,7 +1893,10 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["inflation", "expectations"],
+      "tags": [
+        "inflation",
+        "expectations"
+      ],
       "why": "Household inflation expectations can influence wage and pricing behavior."
     },
     {
@@ -932,7 +1911,10 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["growth", "labor"],
+      "tags": [
+        "growth",
+        "labor"
+      ],
       "why": "A rising unemployment rate is the slow but decisive recession confirmation signal."
     },
     {
@@ -949,7 +1931,10 @@
       "periods": 3,
       "scale": 12,
       "riskDirection": "low",
-      "tags": ["growth", "labor"],
+      "tags": [
+        "growth",
+        "labor"
+      ],
       "why": "Payroll momentum turns before the level of employment looks alarming."
     },
     {
@@ -964,7 +1949,10 @@
       "unit": "people",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["growth", "labor"],
+      "tags": [
+        "growth",
+        "labor"
+      ],
       "why": "Claims are one of the timeliest recession and layoff warnings."
     },
     {
@@ -979,7 +1967,10 @@
       "unit": "people",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["growth", "labor"],
+      "tags": [
+        "growth",
+        "labor"
+      ],
       "why": "Continuing claims show whether laid-off workers are finding jobs quickly."
     },
     {
@@ -995,7 +1986,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "low",
-      "tags": ["growth", "macro"],
+      "tags": [
+        "growth",
+        "macro"
+      ],
       "why": "Industrial production weakness catches cyclical slowdowns and inventory shocks."
     },
     {
@@ -1011,7 +2005,10 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "low",
-      "tags": ["growth", "consumer"],
+      "tags": [
+        "growth",
+        "consumer"
+      ],
       "why": "Retail sales reveal consumer demand pressure before broad GDP revisions."
     },
     {
@@ -1026,7 +2023,10 @@
       "unit": "thousands SAAR",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["growth", "housing"],
+      "tags": [
+        "growth",
+        "housing"
+      ],
       "why": "Housing starts are rate-sensitive and can flag policy drag early."
     },
     {
@@ -1041,7 +2041,10 @@
       "unit": "thousands SAAR",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["growth", "housing"],
+      "tags": [
+        "growth",
+        "housing"
+      ],
       "why": "Permits are a forward-looking read on residential construction."
     },
     {
@@ -1056,7 +2059,10 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["growth", "consumer"],
+      "tags": [
+        "growth",
+        "consumer"
+      ],
       "why": "Weak sentiment can expose demand fragility and political-economy stress."
     },
     {
@@ -1071,7 +2077,10 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["growth", "survey"],
+      "tags": [
+        "growth",
+        "survey"
+      ],
       "why": "Manufacturing confidence is a timely survey proxy for cyclical demand and production stress."
     },
     {
@@ -1086,7 +2095,11 @@
       "unit": "%",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["growth", "housing", "rates"],
+      "tags": [
+        "growth",
+        "housing",
+        "rates"
+      ],
       "why": "Mortgage rates transmit policy rates into housing affordability and construction."
     },
     {
@@ -1101,7 +2114,12 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "risk", "stress"],
+      "tags": [
+        "credit",
+        "funding",
+        "risk",
+        "stress"
+      ],
       "why": "High-yield spreads are one of the cleanest public credit-stress gauges."
     },
     {
@@ -1116,7 +2134,11 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "risk"],
+      "tags": [
+        "credit",
+        "funding",
+        "risk"
+      ],
       "why": "Broad corporate OAS captures the average compensation for credit risk."
     },
     {
@@ -1131,7 +2153,11 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "risk"],
+      "tags": [
+        "credit",
+        "funding",
+        "risk"
+      ],
       "why": "BBB spreads sit near the investment-grade/high-yield migration boundary."
     },
     {
@@ -1146,7 +2172,10 @@
       "unit": "pp",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding"],
+      "tags": [
+        "credit",
+        "funding"
+      ],
       "why": "AAA spreads separate broad liquidity premium from lower-quality default risk."
     },
     {
@@ -1161,7 +2190,11 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "stress"],
+      "tags": [
+        "credit",
+        "funding",
+        "stress"
+      ],
       "why": "NFCI aggregates leverage, risk, and credit conditions into one stress read."
     },
     {
@@ -1176,7 +2209,11 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "stress"],
+      "tags": [
+        "credit",
+        "funding",
+        "stress"
+      ],
       "why": "Adjusted NFCI strips out contemporaneous macro conditions to isolate financial tightness."
     },
     {
@@ -1191,7 +2228,11 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["credit", "funding", "stress"],
+      "tags": [
+        "credit",
+        "funding",
+        "stress"
+      ],
       "why": "This index is built to flag system-wide financial market stress."
     },
     {
@@ -1207,7 +2248,11 @@
       "transform": "yoy_pct",
       "periods": 52,
       "riskDirection": "low",
-      "tags": ["credit", "growth", "banking"],
+      "tags": [
+        "credit",
+        "growth",
+        "banking"
+      ],
       "why": "Weak C&I loan growth can show tighter credit creation."
     },
     {
@@ -1223,7 +2268,11 @@
       "transform": "yoy_pct",
       "periods": 52,
       "riskDirection": "low",
-      "tags": ["liquidity", "funding", "policy"],
+      "tags": [
+        "liquidity",
+        "funding",
+        "policy"
+      ],
       "why": "Balance-sheet contraction can remove liquidity cushion from duration and credit markets."
     },
     {
@@ -1238,7 +2287,11 @@
       "unit": "USD bn",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["liquidity", "funding", "banking"],
+      "tags": [
+        "liquidity",
+        "funding",
+        "banking"
+      ],
       "why": "Low reserves can make funding markets more fragile."
     },
     {
@@ -1254,7 +2307,11 @@
       "transform": "level",
       "valueDivisor": 1000,
       "riskDirection": "high",
-      "tags": ["liquidity", "treasury", "funding"],
+      "tags": [
+        "liquidity",
+        "treasury",
+        "funding"
+      ],
       "why": "A high TGA can drain bank reserves as Treasury cash sits at the Fed."
     },
     {
@@ -1269,7 +2326,10 @@
       "unit": "USD bn",
       "transform": "level",
       "riskDirection": "two-sided",
-      "tags": ["liquidity", "funding"],
+      "tags": [
+        "liquidity",
+        "funding"
+      ],
       "why": "RRP extremes show how much money-market cash is parked at the Fed."
     },
     {
@@ -1285,7 +2345,11 @@
       "transform": "yoy_pct",
       "periods": 12,
       "riskDirection": "two-sided",
-      "tags": ["liquidity", "inflation", "macro"],
+      "tags": [
+        "liquidity",
+        "inflation",
+        "macro"
+      ],
       "why": "Money supply extremes can map to inflation pressure or liquidity contraction."
     },
     {
@@ -1300,7 +2364,12 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["fx", "dollar", "liquidity", "carry"],
+      "tags": [
+        "fx",
+        "dollar",
+        "liquidity",
+        "carry"
+      ],
       "why": "Dollar strength tightens global financial conditions and pressures dollar borrowers."
     },
     {
@@ -1315,7 +2384,11 @@
       "unit": "JPY per USD",
       "transform": "level",
       "riskDirection": "two-sided",
-      "tags": ["fx", "carry", "japan"],
+      "tags": [
+        "fx",
+        "carry",
+        "japan"
+      ],
       "why": "A crowded weak-yen regime can unwind violently when USDJPY falls fast."
     },
     {
@@ -1330,7 +2403,12 @@
       "unit": "CNY per USD",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["fx", "china", "dollar", "risk"],
+      "tags": [
+        "fx",
+        "china",
+        "dollar",
+        "risk"
+      ],
       "why": "Yuan weakness can transmit China growth stress and dollar pressure globally."
     },
     {
@@ -1345,7 +2423,11 @@
       "unit": "USD per EUR",
       "transform": "level",
       "riskDirection": "low",
-      "tags": ["fx", "dollar", "europe"],
+      "tags": [
+        "fx",
+        "dollar",
+        "europe"
+      ],
       "why": "A falling EURUSD is often another expression of dollar funding pressure."
     },
     {
@@ -1360,7 +2442,11 @@
       "unit": "USD/bbl",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["commodity", "energy", "inflation"],
+      "tags": [
+        "commodity",
+        "energy",
+        "inflation"
+      ],
       "why": "Oil spikes feed headline inflation and real-income shocks."
     },
     {
@@ -1375,7 +2461,11 @@
       "unit": "USD/bbl",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["commodity", "energy", "inflation"],
+      "tags": [
+        "commodity",
+        "energy",
+        "inflation"
+      ],
       "why": "Brent is the global oil benchmark and captures non-U.S. supply shocks."
     },
     {
@@ -1390,7 +2480,12 @@
       "unit": "USD/gal",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["commodity", "energy", "inflation", "consumer"],
+      "tags": [
+        "commodity",
+        "energy",
+        "inflation",
+        "consumer"
+      ],
       "why": "Gasoline is highly visible to households and can move inflation expectations."
     },
     {
@@ -1405,7 +2500,11 @@
       "unit": "USD/MMBtu",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["commodity", "energy", "inflation"],
+      "tags": [
+        "commodity",
+        "energy",
+        "inflation"
+      ],
       "why": "Natural gas spikes can hit utilities, industrial margins, and regional inflation."
     },
     {
@@ -1420,7 +2519,11 @@
       "unit": "USD/mt",
       "transform": "level",
       "riskDirection": "two-sided",
-      "tags": ["commodity", "growth", "china"],
+      "tags": [
+        "commodity",
+        "growth",
+        "china"
+      ],
       "why": "Copper is a cyclical demand and China-sensitive commodity signal."
     },
     {
@@ -1435,7 +2538,12 @@
       "unit": "index",
       "transform": "level",
       "riskDirection": "high",
-      "tags": ["commodity", "safe_haven", "inflation", "vol"],
+      "tags": [
+        "commodity",
+        "safe_haven",
+        "inflation",
+        "vol"
+      ],
       "why": "Gold ETF implied volatility can flag safe-haven stress, inflation hedging demand, and commodity volatility shocks."
     }
   ]

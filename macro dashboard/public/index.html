@@ -18,6 +18,14 @@
         </div>
 
         <div class="sidebar-section">
+          <div class="sidebar-label">Workspace</div>
+          <div class="view-nav" id="viewNav">
+            <button type="button" data-view="monitor" class="active">Monitor</button>
+            <button type="button" data-view="cases">Case study</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
           <div class="sidebar-label">Risk domains</div>
           <nav class="group-nav" id="groupNav"></nav>
         </div>
@@ -35,7 +43,7 @@
       </aside>
 
       <main class="workspace">
-        <header class="topbar">
+        <header class="topbar" id="monitorTopbar">
           <div class="title-block">
             <p class="eyebrow">Live monitor</p>
             <h2>Macro shock early-warning console</h2>
@@ -51,6 +59,18 @@
           </div>
         </header>
 
+        <header class="topbar" id="caseTopbar" hidden>
+          <div class="title-block">
+            <p class="eyebrow">Research framework</p>
+            <h2>Dot-com setup, public-data checks</h2>
+            <p>Reports shape the questions, not the conclusion; the dashboard verifies each setup with public data, no look-ahead, and current readings.</p>
+          </div>
+          <div class="toolbar" aria-label="Case study controls">
+            <button id="backToMonitorBtn" class="toolbar-btn subtle" type="button">Monitor</button>
+          </div>
+        </header>
+
+        <div id="monitorView" class="view-panel">
         <section class="status-strip" id="statusStrip" aria-live="polite">
           <div>
             <span class="metric-label">Coverage</span>
@@ -129,6 +149,35 @@
           </div>
           <div class="country-matrix" id="countryGrid"></div>
         </section>
+        </div>
+
+        <div id="caseView" class="view-panel case-view" hidden>
+          <section class="case-overview">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Replay tape</p>
+                <h3>Framework, not report faith</h3>
+              </div>
+              <p>The historical side only uses observations available by the selected date; reports are used as a map of what to test, not as the answer.</p>
+            </div>
+            <div class="case-tabs" id="caseTabs"></div>
+          </section>
+
+          <section class="case-study-grid">
+            <div class="case-detail" id="caseDetail"></div>
+            <div class="case-pillar-board" id="casePillars"></div>
+          </section>
+
+          <section class="case-table-shell">
+            <div class="case-row case-header">
+              <span>Status</span>
+              <span>Indicator</span>
+              <span>Then</span>
+              <span>Now</span>
+            </div>
+            <div id="caseRows" class="case-rows"></div>
+          </section>
+        </div>
       </main>
     </div>
 

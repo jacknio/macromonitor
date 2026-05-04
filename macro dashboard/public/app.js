@@ -313,7 +313,9 @@ function renderTopStatus() {
   els.topScenarioText.textContent = topScenario ? `${topScenario.name} ${topScenario.score}` : "--";
   els.extremeText.textContent = `${extremes.length} highlighted`;
   els.cacheText.textContent = formatCache(monitor.cacheTtlSeconds);
-  els.demoBtn.textContent = state.demo ? "Live" : "Demo";
+  if (els.demoBtn) {
+    els.demoBtn.textContent = state.demo ? "Live" : "Demo";
+  }
 }
 
 function renderSources() {
@@ -957,10 +959,12 @@ function wireEvents() {
     selectMetric(row.dataset.id);
   });
 
-  els.searchInput.addEventListener("input", (event) => {
-    state.query = event.target.value;
-    renderRows();
-  });
+  if (els.searchInput) {
+    els.searchInput.addEventListener("input", (event) => {
+      state.query = event.target.value;
+      renderRows();
+    });
+  }
 
   els.sortTabs.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-sort]");
@@ -970,16 +974,20 @@ function wireEvents() {
     renderRows();
   });
 
-  els.refreshBtn.addEventListener("click", () => loadMonitor(true));
-  els.demoBtn.addEventListener("click", () => {
-    const url = new URL(window.location.href);
-    if (state.demo) {
-      url.searchParams.delete("demo");
-    } else {
-      url.searchParams.set("demo", "1");
-    }
-    window.location.href = url.toString();
-  });
+  if (els.refreshBtn) {
+    els.refreshBtn.addEventListener("click", () => loadMonitor(true));
+  }
+  if (els.demoBtn) {
+    els.demoBtn.addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      if (state.demo) {
+        url.searchParams.delete("demo");
+      } else {
+        url.searchParams.set("demo", "1");
+      }
+      window.location.href = url.toString();
+    });
+  }
 
   els.inspector.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-window]");

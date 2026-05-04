@@ -487,7 +487,7 @@
     {
       "id": "bubble_breadth",
       "name": "Bubble breadth / AI leadership",
-      "description": "Report-informed dot-com style checklist: tech leadership, narrow breadth proxies, valuation cushions, real-rate pressure, and low-vol complacency.",
+      "description": "Dot-com style public-data checklist: tech leadership, narrow breadth proxies, valuation cushions, real-rate pressure, and low-VIX complacency.",
       "metricIds": [
         "nasdaq_sp500_ratio",
         "nasdaq_yoy",
@@ -561,16 +561,13 @@
       "asOf": "2000-03-10",
       "shockDate": "2000-03-10",
       "market": "NASDAQ peak before the 2000-2002 equity unwind",
-      "summary": "The report-informed question set is intentionally narrow: equity valuation and tech leadership were extreme, while classic credit and labor stress were not the main early warning at the peak.",
+      "summary": "The public-data question set is intentionally narrow: equity valuation and tech leadership were extreme, while classic credit and labor stress were not the main early warning at the peak.",
       "lesson": "Treat it as a fragility checklist, not a crash timer. The dangerous setup is valuation plus narrow leadership plus tightening/low risk premium; the catalyst can arrive later.",
-      "reportBasis": "Local 2000 reports were used only to extract candidate questions: valuation cushion, risk premia, real rates, profit expectations, internet-sector P/E and P/S extremes, IPO/new-issue pressure, and dispersion across internet subsectors.",
-      "currentRead": "Recent reports are treated the same way: they suggest questions about breadth, AI/semi leadership, positioning, earnings expectations, IPO appetite, oil/inflation tails, and left-tail hedging. Public data decides whether those questions are active.",
       "threshold": 45,
       "pillars": [
         {
           "id": "valuation",
           "name": "Valuation cushion",
-          "reportRead": "2000 work asked whether the new economy justified elevated valuations; useful signals are CAPE, PE, dividend/earnings yield, and market-cap-to-GDP style ratios.",
           "todayRead": "Checks whether current valuation leaves little cushion if AI earnings or discount-rate assumptions wobble.",
           "metricIds": [
             "sp500_cape",
@@ -580,33 +577,33 @@
             "buffett_indicator",
             "fed_model_gap",
             "real_earnings_yield_gap"
-          ]
+          ],
+          "historicalRead": "The historical setup asked whether faster growth could justify elevated valuations; useful public signals are CAPE, PE/earnings yield, dividend yield, and market-cap-to-GDP style ratios."
         },
         {
           "id": "leadership",
           "name": "Leadership and breadth",
-          "reportRead": "Internet reports show extreme sector multiples and sharp internet/technology leadership; recent reports call out breadth near dot-com-like narrowness.",
           "todayRead": "Uses public proxies for tech dominance and momentum: NASDAQ relative performance, NASDAQ one-year momentum, and semiconductors versus the market.",
           "metricIds": [
             "nasdaq_sp500_ratio",
             "nasdaq_yoy",
             "sox_sp500_ratio"
-          ]
+          ],
+          "historicalRead": "The historical setup showed extreme technology leadership and sector dispersion; the public proxy is relative tech performance, price momentum, and semiconductors versus the broad market."
         },
         {
           "id": "earnings",
           "name": "Profit assumptions",
-          "reportRead": "The 2000 bullish case depended on realized earnings growth and improved profit expectations; that makes profit growth and margins part of the bubble diagnosis.",
           "todayRead": "Flags whether current equity strength rests on unusually strong earnings growth or high aggregate margins.",
           "metricIds": [
             "sp500_real_earnings_yoy",
             "corp_profit_gdp"
-          ]
+          ],
+          "historicalRead": "The bullish setup depended on realized earnings growth and improved profit expectations; profit growth and aggregate margins help test whether valuation has support."
         },
         {
           "id": "rates",
           "name": "Rates and risk premia",
-          "reportRead": "The new-economy valuation case explicitly used lower risk premia and lower real rates; Fed tightening is the pressure point when that assumption reverses.",
           "todayRead": "Compares today with the 2000 setup through real policy rates, recent Fed tightening, the curve, and long-history credit spreads.",
           "metricIds": [
             "real_policy_rate",
@@ -614,21 +611,24 @@
             "dgs10",
             "t10y2y",
             "baa10y"
-          ]
+          ],
+          "historicalRead": "The valuation setup was fragile to discount-rate and risk-premium changes; real policy rates, Fed tightening, curve shape, and credit spreads test that pressure."
         },
         {
           "id": "complacency",
           "name": "Complacency and tails",
-          "reportRead": "A bubble can keep rising while volatility is quiet; low-vol regimes become more dangerous when valuation and leadership signals are already stretched.",
-          "todayRead": "Recent desk reports mention low implied volatility, downside demand, and oil/inflation tails; this pillar separates complacency from already-realized stress.",
+          "todayRead": "Checks recent public VIX levels and changes alongside oil and inflation proxies, separating low-vol complacency from realized stress.",
           "metricIds": [
             "vix_low_complacency",
             "vix",
             "wti_3m_change",
             "t10yie"
-          ]
+          ],
+          "historicalRead": "A bubble can keep rising while volatility is quiet; low-vol regimes become more dangerous when valuation and leadership signals are already stretched."
         }
-      ]
+      ],
+      "frameworkBasis": "The framework asks whether valuation cushion, risk premia, real rates, profit assumptions, tech-sector leadership, new-issue pressure, and sector dispersion are showing public-data stress.",
+      "currentVerification": "Current checks use public proxies for breadth, AI/semi leadership, positioning through prices and volatility, earnings expectations, IPO appetite where available, oil/inflation tails, and hedging stress."
     }
   ],
   "events": [
@@ -687,7 +687,8 @@
         "ratio",
         "bubble"
       ],
-      "why": "CAPE compares equity prices with a 10-year smoothed earnings base; very high readings flag expensive long-cycle equity valuation."
+      "why": "CAPE compares equity prices with a 10-year smoothed earnings base; very high readings flag expensive long-cycle equity valuation.",
+      "signalFamily": "us_equity_valuation_multiple"
     },
     {
       "id": "sp500_pe_ttm",
@@ -706,7 +707,8 @@
         "equity",
         "ratio"
       ],
-      "why": "Trailing PE captures how much investors pay for realized earnings; high readings can make markets more fragile to rate or earnings shocks."
+      "why": "Trailing PE captures how much investors pay for realized earnings; high readings can make markets more fragile to rate or earnings shocks.",
+      "signalFamily": "us_equity_valuation_multiple"
     },
     {
       "id": "sp500_earnings_yield",
@@ -726,7 +728,8 @@
         "ratio",
         "yield"
       ],
-      "why": "Low earnings yield means investors receive little earnings compensation for equity risk."
+      "why": "Low earnings yield means investors receive little earnings compensation for equity risk.",
+      "signalFamily": "us_equity_valuation_multiple"
     },
     {
       "id": "sp500_dividend_yield",
@@ -746,7 +749,8 @@
         "ratio",
         "yield"
       ],
-      "why": "Low dividend yield is a simple long-history valuation pressure gauge."
+      "why": "Low dividend yield is a simple long-history valuation pressure gauge.",
+      "signalFamily": "us_equity_income_yield"
     },
     {
       "id": "sp500_price_long",
@@ -805,7 +809,8 @@
         "momentum",
         "bubble"
       ],
-      "why": "A high NASDAQ/S&P ratio shows tech and growth leadership becoming unusually dominant versus the broad large-cap market, a core dot-com style signal."
+      "why": "A high NASDAQ/S&P ratio shows tech and growth leadership becoming unusually dominant versus the broad large-cap market, a core dot-com style signal.",
+      "signalFamily": "tech_relative_leadership"
     },
     {
       "id": "nasdaq_yoy",
@@ -827,7 +832,8 @@
         "momentum",
         "bubble"
       ],
-      "why": "Fast one-year NASDAQ appreciation flags speculative momentum and crowded growth leadership."
+      "why": "Fast one-year NASDAQ appreciation flags speculative momentum and crowded growth leadership.",
+      "signalFamily": "tech_price_momentum"
     },
     {
       "id": "sox_sp500_ratio",
@@ -867,7 +873,8 @@
         "momentum",
         "bubble"
       ],
-      "why": "Semiconductor outperformance is a cleaner current-cycle proxy for AI infrastructure leadership and potential narrow-market crowding."
+      "why": "Semiconductor outperformance is a cleaner current-cycle proxy for AI infrastructure leadership and potential narrow-market crowding.",
+      "signalFamily": "semi_relative_leadership"
     },
     {
       "id": "sp500_real_earnings_yoy",
@@ -888,7 +895,8 @@
         "profit",
         "bubble"
       ],
-      "why": "The 2000 new-economy argument leaned on very strong earnings and profit expectations; extreme earnings growth can either justify valuations temporarily or become a mean-reversion risk."
+      "why": "The 2000 new-economy argument leaned on very strong earnings and profit expectations; extreme earnings growth can either justify valuations temporarily or become a mean-reversion risk.",
+      "signalFamily": "earnings_growth"
     },
     {
       "id": "corp_profit_gdp",
@@ -909,7 +917,8 @@
         "margin",
         "macro"
       ],
-      "why": "High corporate profits relative to GDP indicate unusually rich aggregate margins; that can support valuations but also raises mean-reversion risk."
+      "why": "High corporate profits relative to GDP indicate unusually rich aggregate margins; that can support valuations but also raises mean-reversion risk.",
+      "signalFamily": "profit_share"
     },
     {
       "id": "baa10y",
@@ -929,7 +938,8 @@
         "funding",
         "bubble"
       ],
-      "why": "Baa-Treasury spread is a long-history credit risk-premium check; quiet credit alongside extreme equity valuation suggests bubble fragility rather than funding crisis."
+      "why": "Baa-Treasury spread is a long-history credit risk-premium check; quiet credit alongside extreme equity valuation suggests bubble fragility rather than funding crisis.",
+      "signalFamily": "credit_risk_premium"
     },
     {
       "id": "real_policy_rate",
@@ -968,7 +978,8 @@
         "bubble",
         "valuation"
       ],
-      "why": "A rising real policy rate can prick long-duration equity stories by making funding and discount rates less forgiving."
+      "why": "A rising real policy rate can prick long-duration equity stories by making funding and discount rates less forgiving.",
+      "signalFamily": "real_policy_rate"
     },
     {
       "id": "policy_rate_6m_change",
@@ -989,7 +1000,8 @@
         "tightening",
         "bubble"
       ],
-      "why": "Rapid Fed tightening is a direct pressure point for high-duration and speculative equities."
+      "why": "Rapid Fed tightening is a direct pressure point for high-duration and speculative equities.",
+      "signalFamily": "policy_tightening_impulse"
     },
     {
       "id": "vix_low_complacency",
@@ -1009,7 +1021,8 @@
         "complacency",
         "bubble"
       ],
-      "why": "Unusually low implied volatility can mean investors are underpaying for left-tail risk while valuation or positioning risk is building."
+      "why": "Low VIX readings can signal that markets are pricing little near-term equity turbulence while valuation or positioning risk is building.",
+      "signalFamily": "low_vix_complacency"
     },
     {
       "id": "wti_3m_change",
@@ -1030,7 +1043,8 @@
         "inflation",
         "shock"
       ],
-      "why": "Recent reports highlight oil and energy shocks as a macro risk that can collide with equity optimism through inflation and margins."
+      "why": "A rapid oil price increase can collide with equity optimism through inflation expectations, margins, and household real-income pressure.",
+      "signalFamily": "oil_price_shock"
     },
     {
       "id": "russell2000_price",
@@ -1156,7 +1170,8 @@
         "ratio",
         "macro"
       ],
-      "why": "A public-data Buffett indicator proxy: nonfinancial corporate equity market value divided by nominal GDP."
+      "why": "A public-data Buffett indicator proxy: nonfinancial corporate equity market value divided by nominal GDP.",
+      "signalFamily": "equity_to_economy"
     },
     {
       "id": "equity_to_m2",
@@ -1193,7 +1208,8 @@
         "equity",
         "ratio"
       ],
-      "why": "Normalizes equity market value by broad money; high readings can flag stretched equity valuation relative to liquidity."
+      "why": "Normalizes equity market value by broad money; high readings can flag stretched equity valuation relative to liquidity.",
+      "signalFamily": "equity_to_liquidity"
     },
     {
       "id": "equity_to_fed_bs",
@@ -1267,7 +1283,8 @@
         "equity",
         "ratio"
       ],
-      "why": "Compares S&P 500 earnings yield with the 10-year Treasury yield; low or negative gaps mean equities offer less yield cushion versus bonds."
+      "why": "Compares S&P 500 earnings yield with the 10-year Treasury yield; low or negative gaps mean equities offer less yield cushion versus bonds.",
+      "signalFamily": "equity_yield_gap"
     },
     {
       "id": "real_earnings_yield_gap",
@@ -1305,7 +1322,8 @@
         "equity",
         "ratio"
       ],
-      "why": "Compares equity earnings yield with real Treasury yield; low readings flag valuation fragility when real rates are high."
+      "why": "Compares equity earnings yield with real Treasury yield; low readings flag valuation fragility when real rates are high.",
+      "signalFamily": "equity_yield_gap"
     },
     {
       "id": "it_de_10y_spread",
@@ -1498,7 +1516,8 @@
         "carry",
         "stress"
       ],
-      "why": "Equity implied volatility is the fastest public proxy for forced de-risking."
+      "why": "The VIX is the fastest public proxy for equity stress and forced de-risking.",
+      "signalFamily": "equity_vol_stress"
     },
     {
       "id": "sp500",
@@ -1613,7 +1632,8 @@
         "carry",
         "market"
       ],
-      "why": "The long rate anchors global discount rates; fast moves in either direction can shock positioning."
+      "why": "The long rate anchors global discount rates; fast moves in either direction can shock positioning.",
+      "signalFamily": "long_rate"
     },
     {
       "id": "dgs30",
@@ -1651,7 +1671,8 @@
         "growth",
         "carry"
       ],
-      "why": "Deep inversion or sudden steepening can flag recession risk or policy panic."
+      "why": "Deep inversion or sudden steepening can flag recession risk or policy panic.",
+      "signalFamily": "yield_curve"
     },
     {
       "id": "t10y3m",
@@ -1708,7 +1729,8 @@
         "breakeven",
         "rates"
       ],
-      "why": "Market-implied inflation compensation can warn before realized inflation data updates."
+      "why": "Market-implied inflation compensation can warn before realized inflation data updates.",
+      "signalFamily": "inflation_expectations"
     },
     {
       "id": "t5yie",
@@ -2544,7 +2566,7 @@
         "inflation",
         "vol"
       ],
-      "why": "Gold ETF implied volatility can flag safe-haven stress, inflation hedging demand, and commodity volatility shocks."
+      "why": "Gold ETF volatility can flag safe-haven stress, inflation hedging demand, and commodity volatility shocks."
     }
   ]
 }

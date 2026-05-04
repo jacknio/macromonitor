@@ -545,18 +545,18 @@ function renderCaseStudies() {
     </div>
     <div class="case-read-grid">
       <div>
-        <span class="metric-label">How reports inform indicators</span>
-        <p>${escapeHtml(selected.reportBasis || "Reports define the questions and candidate indicators; public data decides whether the setup is actually present.")}</p>
+        <span class="metric-label">Framework basis</span>
+        <p>${escapeHtml(selected.frameworkBasis || "Candidate indicators are converted into public ratios and standardized against their own history before they affect the score.")}</p>
       </div>
       <div>
         <span class="metric-label">Current verification</span>
-        <p>${escapeHtml(selected.currentRead || "Current public readings are checked independently against the historical framework.")}</p>
+        <p>${escapeHtml(selected.currentVerification || "Current public readings are checked independently against the historical framework.")}</p>
       </div>
     </div>
     <ul class="analysis-list">
       <li>${escapeHtml(selected.summary || "")}</li>
       <li>${escapeHtml(selected.lesson || "")}</li>
-      <li>This is not a forecast copied from any report: historical scores use only data dated on or before ${escapeHtml(formatDate(selected.asOf))}; current scores use the latest public observations.</li>
+      <li>Historical scores use only data dated on or before ${escapeHtml(formatDate(selected.asOf))}; current scores use the latest public observations.</li>
     </ul>
   `;
 
@@ -573,7 +573,7 @@ function renderCaseStudies() {
         </div>
         <div class="case-pillar-read">
           <span class="metric-label">Indicator logic</span>
-          <p>${escapeHtml(pillar.reportRead || "")}</p>
+          <p>${escapeHtml(pillar.historicalRead || "")}</p>
         </div>
         <div class="case-pillar-read">
           <span class="metric-label">Public-data check</span>

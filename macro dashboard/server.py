@@ -39,6 +39,16 @@ CACHE_DIR = os.path.join(ROOT, ".cache")
 HTTP_CACHE_DIR = os.path.join(CACHE_DIR, "http")
 CATALOG_PATH = os.path.join(DATA_DIR, "catalog.json")
 SNAPSHOT_PATH = os.path.join(DATA_DIR, "bootstrap_monitor.json")
+PRIVATE_STATIC_SEGMENTS = {
+    ".cache",
+    ".deps",
+    ".git",
+    "__pycache__",
+    "data",
+    "report",
+    "reports",
+    "scripts",
+}
 
 CACHE_TTL_SECONDS = int(os.environ.get("MACRO_CACHE_TTL_SECONDS", str(6 * 60 * 60)))
 DEFAULT_PORT = int(os.environ.get("PORT", "8787"))
@@ -197,6 +207,36 @@ def round_or_none(value, digits=4):
     if math.isnan(value) or math.isinf(value):
         return None
     return round(value, digits)
+
+
+def metric_signal_family(metric):
+    return metric.get("signalFamily") or metric.get("id")
+
+
+def unique_best_by_family(items, score_getter):
+    ranked = sorted(items, key=lambda item: score_getter(item) or 0, reverse=True)
+    seen = set()
+    unique = []
+    for item in ranked:
+        family = metric_signal_family(item)
+        if family in seen:
+            continue
+        seen.add(family)
+        unique.append(item)
+    return unique
+
+
+def public_path_parts(path):
+    parsed = urllib.parse.urlparse(path)
+    normalized = posixpath.normpath(urllib.parse.unquote(parsed.path))
+    if normalized == "/":
+        normalized = "/index.html"
+    return [part for part in normalized.split("/") if part and part not in (".", "..")]
+
+
+def is_private_static_request(path):
+    parts = public_path_parts(path)
+    return any(part in PRIVATE_STATIC_SEGMENTS or part.startswith(".") for part in parts)
 
 
 def cache_file_for(url):
@@ -968,6 +1008,7 @@ def score_metric_points(metric, points, source_status, fetched_at, source_url, i
         "unit": metric.get("unit"),
         "transform": metric.get("transform"),
         "riskDirection": direction,
+        "signalFamily": metric_signal_family(metric),
         "tags": metric.get("tags", []),
         "why": metric.get("why"),
         "latest": round_or_none(latest_value, 6),
@@ -1040,6 +1081,7 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             "countryRole": metric.get("countryRole"),
             "unit": metric.get("unit"),
             "riskDirection": metric.get("riskDirection", "two-sided"),
+            "signalFamily": metric_signal_family(metric),
             "tags": metric.get("tags", []),
             "why": metric.get("why"),
             "ok": False,
@@ -1155,6 +1197,7 @@ def analyze_metric_as_of(metric, as_of_date, refresh=False, demo=False):
             "group": metric.get("group"),
             "unit": metric.get("unit"),
             "riskDirection": metric.get("riskDirection", "two-sided"),
+            "signalFamily": metric_signal_family(metric),
             "ok": False,
             "error": str(exc),
             "alertScore": 0,
@@ -1183,6 +1226,7 @@ def case_metric_payload(metric_id, historical, current, threshold, pillar=None):
         "name": historical.get("name") or (current or {}).get("name"),
         "group": historical.get("group") or (current or {}).get("group"),
         "riskDirection": historical.get("riskDirection") or (current or {}).get("riskDirection"),
+        "signalFamily": historical.get("signalFamily") or (current or {}).get("signalFamily") or metric_id,
         "why": (current or historical).get("why"),
         "pillar": pillar,
         "status": status,
@@ -1252,10 +1296,22 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
         matched = [row for row in rows if row.get("status") == "matched"]
         not_yet = [row for row in rows if row.get("status") == "not_yet"]
         now_only = [row for row in rows if row.get("status") == "now_only"]
-        if case_flags:
+        unique_case_flags = unique_best_by_family(
+            case_flags, lambda row: row.get("case", {}).get("riskScore", 0)
+        )
+        unique_matched = unique_best_by_family(
+            matched, lambda row: row.get("case", {}).get("riskScore", 0)
+        )
+        unique_not_yet = unique_best_by_family(
+            not_yet, lambda row: row.get("case", {}).get("riskScore", 0)
+        )
+        unique_now_only = unique_best_by_family(
+            now_only, lambda row: row.get("now", {}).get("riskScore", 0)
+        )
+        if unique_case_flags:
             weighted = [
                 clamp((row["now"].get("riskScore") or 0) / float(max(row["case"].get("riskScore") or 1, 1)) * 100.0, 0.0, 100.0)
-                for row in case_flags
+                for row in unique_case_flags
             ]
             match_score = int(round(sum(weighted) / float(len(weighted))))
         else:
@@ -1274,10 +1330,25 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
             pillar_ids = set(pillar.get("metricIds", []))
             pillar_rows = [row for row in rows if row.get("id") in pillar_ids]
             pillar_case_flags = [row for row in pillar_rows if row.get("caseFlag")]
-            if pillar_case_flags:
+            unique_pillar_case_flags = unique_best_by_family(
+                pillar_case_flags, lambda row: row.get("case", {}).get("riskScore", 0)
+            )
+            unique_pillar_matched = unique_best_by_family(
+                [row for row in pillar_rows if row.get("status") == "matched"],
+                lambda row: row.get("case", {}).get("riskScore", 0),
+            )
+            unique_pillar_not_yet = unique_best_by_family(
+                [row for row in pillar_rows if row.get("status") == "not_yet"],
+                lambda row: row.get("case", {}).get("riskScore", 0),
+            )
+            unique_pillar_now_only = unique_best_by_family(
+                [row for row in pillar_rows if row.get("status") == "now_only"],
+                lambda row: row.get("now", {}).get("riskScore", 0),
+            )
+            if unique_pillar_case_flags:
                 pillar_weighted = [
                     clamp((row["now"].get("riskScore") or 0) / float(max(row["case"].get("riskScore") or 1, 1)) * 100.0, 0.0, 100.0)
-                    for row in pillar_case_flags
+                    for row in unique_pillar_case_flags
                 ]
                 pillar_match_score = int(round(sum(pillar_weighted) / float(len(pillar_weighted))))
             else:
@@ -1286,13 +1357,13 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
                 {
                     "id": pillar.get("id"),
                     "name": pillar.get("name"),
-                    "reportRead": pillar.get("reportRead"),
+                    "historicalRead": pillar.get("historicalRead"),
                     "todayRead": pillar.get("todayRead"),
                     "matchScore": pillar_match_score,
-                    "caseAlertCount": len(pillar_case_flags),
-                    "matchedCount": len([row for row in pillar_rows if row.get("status") == "matched"]),
-                    "notYetCount": len([row for row in pillar_rows if row.get("status") == "not_yet"]),
-                    "nowOnlyCount": len([row for row in pillar_rows if row.get("status") == "now_only"]),
+                    "caseAlertCount": len(unique_pillar_case_flags),
+                    "matchedCount": len(unique_pillar_matched),
+                    "notYetCount": len(unique_pillar_not_yet),
+                    "nowOnlyCount": len(unique_pillar_now_only),
                     "metricIds": list(pillar.get("metricIds", [])),
                 }
             )
@@ -1306,14 +1377,14 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
                 "market": study.get("market"),
                 "summary": study.get("summary"),
                 "lesson": study.get("lesson"),
-                "reportBasis": study.get("reportBasis"),
-                "currentRead": study.get("currentRead"),
+                "frameworkBasis": study.get("frameworkBasis"),
+                "currentVerification": study.get("currentVerification"),
                 "threshold": threshold,
                 "matchScore": match_score,
-                "caseAlertCount": len(case_flags),
-                "matchedCount": len(matched),
-                "notYetCount": len(not_yet),
-                "nowOnlyCount": len(now_only),
+                "caseAlertCount": len(unique_case_flags),
+                "matchedCount": len(unique_matched),
+                "notYetCount": len(unique_not_yet),
+                "nowOnlyCount": len(unique_now_only),
                 "pillars": pillars,
                 "metrics": rows,
             }
@@ -1342,7 +1413,10 @@ def scenario_score(scenario, metrics_by_id):
             "available": 0,
         }
     selected.sort(key=lambda item: item.get("riskScore", item.get("alertScore", 0)), reverse=True)
-    top = selected[:6]
+    unique_selected = unique_best_by_family(
+        selected, lambda item: item.get("riskScore", item.get("alertScore", 0))
+    )
+    top = unique_selected[:6]
     top_scores = [item.get("riskScore", 0) for item in top]
     max_score = max(top_scores)
     avg_top = sum(top_scores) / float(len(top_scores))
@@ -1364,10 +1438,12 @@ def scenario_score(scenario, metrics_by_id):
                 "unit": item.get("unit"),
                 "asOf": item.get("asOf"),
                 "severity": item.get("severity"),
+                "signalFamily": item.get("signalFamily"),
             }
             for item in top[:5]
         ],
         "available": len(selected),
+        "uniqueAvailable": len(unique_selected),
     }
 
 
@@ -1459,13 +1535,12 @@ class MacroHandler(SimpleHTTPRequestHandler):
         sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), fmt % args))
 
     def translate_path(self, path):
-        parsed = urllib.parse.urlparse(path)
-        path = parsed.path
-        if path == "/":
-            path = "/index.html"
-        path = posixpath.normpath(urllib.parse.unquote(path))
-        parts = [part for part in path.split("/") if part and part not in (".", "..")]
-        return os.path.join(PUBLIC_DIR, *parts)
+        parts = public_path_parts(path)
+        candidate = os.path.realpath(os.path.join(PUBLIC_DIR, *parts))
+        public_root = os.path.realpath(PUBLIC_DIR)
+        if candidate != public_root and not candidate.startswith(public_root + os.sep):
+            return os.path.join(public_root, "__blocked__")
+        return candidate
 
     def end_headers(self):
         self.send_header("X-Content-Type-Options", "nosniff")
@@ -1527,6 +1602,9 @@ class MacroHandler(SimpleHTTPRequestHandler):
             return
 
         path = self.translate_path(self.path)
+        if is_private_static_request(self.path):
+            self.send_error(404, "Not found")
+            return
         if not os.path.exists(path):
             self.send_error(404, "Not found")
             return

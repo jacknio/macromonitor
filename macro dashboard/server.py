@@ -615,18 +615,55 @@ def infer_scale(metric):
     return 1.0
 
 
+def periods_to_days(metric, periods):
+    """Map a lookback expressed in observations into calendar days so change
+    transforms stay correct even when the source has missing observations."""
+    days_per = {
+        "daily": 365.0 / 252.0,
+        "weekly": 7.0,
+        "monthly": 30.44,
+        "quarterly": 91.31,
+        "semiannual": 182.62,
+        "annual": 365.0,
+    }.get(metric.get("frequency", "").lower(), 30.44)
+    return max(1, int(round(periods * days_per)))
+
+
+def drawdown_series(raw_points):
+    """Percent drawdown from the running peak; 0 at new highs, negative below."""
+    transformed = []
+    peak = None
+    for point in raw_points:
+        value = point["value"]
+        if value is None or math.isnan(value) or math.isinf(value) or value <= 0:
+            continue
+        peak = value if peak is None else max(peak, value)
+        drawdown = (value / peak - 1.0) * 100.0
+        transformed.append({"date": point["date"], "value": drawdown})
+    return transformed
+
+
 def apply_transform(raw_points, metric):
     transform = metric.get("transform", "level")
     if transform == "level":
         return list(raw_points)
+    if transform == "drawdown":
+        return drawdown_series(raw_points)
 
     periods = int(metric.get("periods") or 1)
     scale = float(metric.get("scale") or infer_scale(metric))
+    lookback_days = periods_to_days(metric, periods)
+    dates = [point["date"] for point in raw_points]
     transformed = []
     for idx, point in enumerate(raw_points):
-        if idx < periods:
+        if idx < 1:
             continue
-        base = raw_points[idx - periods]["value"]
+        base_point = get_point_before_index(
+            raw_points, dates, point["date"] - dt.timedelta(days=lookback_days)
+        )
+        if not base_point or base_point["date"] >= point["date"]:
+            continue
+        base = base_point["value"]
         current = point["value"]
         value = None
         if base is None or current is None:
@@ -656,6 +693,13 @@ def percentile_rank(values, x):
         if value <= x:
             below_or_equal += 1
     return below_or_equal / float(len(values))
+
+
+def percentile_rank_sorted(sorted_values, x):
+    """O(log n) percentile rank (fraction of observations <= x) on sorted data."""
+    if not sorted_values:
+        return None
+    return bisect.bisect_right(sorted_values, x) / float(len(sorted_values))
 
 
 def quantile(sorted_values, q):
@@ -812,11 +856,11 @@ def stale_days_for(metric):
     if frequency == "monthly":
         return 75
     if frequency == "quarterly":
-        return 135
+        return 200
     if frequency == "semiannual":
-        return 240
+        return 320
     if frequency == "annual":
-        return 1100
+        return 1300
     return 45
 
 
@@ -838,7 +882,6 @@ def make_note(metric, stats):
     notes = []
     short = metric.get("short") or metric.get("name")
     percentile = stats.get("percentile")
-    latest = stats.get("latest")
     direction = metric.get("riskDirection", "two-sided")
     if percentile is not None:
         if percentile >= 0.98:
@@ -863,8 +906,6 @@ def make_note(metric, stats):
         notes.append("This is a two-sided shock indicator; extremes in either direction can matter.")
     if not notes:
         notes.append("No historical extreme is firing; watch the latest change and related scenario drivers.")
-    if latest is not None and stats.get("historicalMax") and stats.get("historicalMin"):
-        pass
     return notes[:5]
 
 
@@ -947,7 +988,7 @@ def score_metric_points(metric, points, source_status, fetched_at, source_url, i
     sorted_values = sorted(values)
     latest_point = points[-1]
     latest_value = latest_point["value"]
-    percentile = percentile_rank(values, latest_value)
+    percentile = percentile_rank_sorted(sorted_values, latest_value)
     mean, std = mean_std(values)
     z_value = None
     if std:
@@ -1053,7 +1094,7 @@ def score_metric_points(metric, points, source_status, fetched_at, source_url, i
     return stats
 
 
-def analyze_metric(metric, refresh=False, include_points=False, demo=False):
+def analyze_metric(metric, refresh=False, include_points=False, demo=False, as_of_date=None):
     try:
         if demo:
             raw_points = make_demo_points(metric)
@@ -1064,7 +1105,15 @@ def analyze_metric(metric, refresh=False, include_points=False, demo=False):
             raw_points, source_status, fetched_at, source_url = fetch_raw_points(metric, refresh=refresh)
 
         points = apply_transform(raw_points, metric)
-        return score_metric_points(metric, points, source_status, fetched_at, source_url, include_points=include_points)
+        return score_metric_points(
+            metric,
+            points,
+            source_status,
+            fetched_at,
+            source_url,
+            include_points=include_points,
+            as_of_date=as_of_date,
+        )
     except Exception as exc:
         return {
             "id": metric.get("id"),
@@ -1171,40 +1220,7 @@ def build_country_matrix(catalog, metrics):
 
 
 def analyze_metric_as_of(metric, as_of_date, refresh=False, demo=False):
-    try:
-        if demo:
-            raw_points = make_demo_points(metric)
-            source_status = "demo"
-            fetched_at = utc_now_iso()
-            source_url = "demo://%s" % metric.get("id")
-        else:
-            raw_points, source_status, fetched_at, source_url = fetch_raw_points(metric, refresh=refresh)
-        points = apply_transform(raw_points, metric)
-        return score_metric_points(
-            metric,
-            points,
-            source_status,
-            fetched_at,
-            source_url,
-            include_points=False,
-            as_of_date=as_of_date,
-        )
-    except Exception as exc:
-        return {
-            "id": metric.get("id"),
-            "short": metric.get("short"),
-            "name": metric.get("name"),
-            "group": metric.get("group"),
-            "unit": metric.get("unit"),
-            "riskDirection": metric.get("riskDirection", "two-sided"),
-            "signalFamily": metric_signal_family(metric),
-            "ok": False,
-            "error": str(exc),
-            "alertScore": 0,
-            "riskScore": 0,
-            "anomalyScore": 0,
-            "severity": "unavailable",
-        }
+    return analyze_metric(metric, refresh=refresh, demo=demo, as_of_date=as_of_date)
 
 
 def case_metric_payload(metric_id, historical, current, threshold, pillar=None):
@@ -1283,12 +1299,23 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
             if metric_id not in ordered_metric_ids:
                 ordered_metric_ids.append(metric_id)
 
+        valid_ids = [mid for mid in ordered_metric_ids if metric_configs.get(mid)]
+        historical_by_id = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            future_map = {
+                executor.submit(
+                    analyze_metric_as_of, metric_configs[mid], as_of_date, refresh, demo
+                ): mid
+                for mid in valid_ids
+            }
+            for future in concurrent.futures.as_completed(future_map):
+                historical_by_id[future_map[future]] = future.result()
+
         rows = []
-        for metric_id in ordered_metric_ids:
-            metric_config = metric_configs.get(metric_id)
-            if not metric_config:
+        for metric_id in valid_ids:
+            historical = historical_by_id.get(metric_id)
+            if historical is None:
                 continue
-            historical = analyze_metric_as_of(metric_config, as_of_date, refresh=refresh, demo=demo)
             current = current_by_id.get(metric_id)
             rows.append(case_metric_payload(metric_id, historical, current, threshold, metric_to_pillar.get(metric_id)))
 
@@ -1447,6 +1474,103 @@ def scenario_score(scenario, metrics_by_id):
     }
 
 
+def asset_bias_label(bias):
+    """Map a signed -100..100 asset bias into a direction + strength label."""
+    magnitude = abs(bias)
+    if magnitude < 8:
+        direction = "neutral"
+    elif bias > 0:
+        direction = "tailwind"
+    else:
+        direction = "headwind"
+    if magnitude >= 55:
+        strength = "strong"
+    elif magnitude >= 35:
+        strength = "moderate"
+    elif magnitude >= 18:
+        strength = "mild"
+    else:
+        strength = "minimal"
+    return direction, strength
+
+
+def build_asset_impacts(scenarios, catalog):
+    """Translate live scenario pressure into directional read for each asset class.
+
+    For every asset we take a weight-averaged signed score across the scenarios
+    that touch it (weight = |dir|, sign = bullish/bearish), so a loud scenario in
+    one direction is not cancelled by a quiet one in the other.
+    """
+    asset_classes = catalog.get("assetClasses", [])
+    impact_map = catalog.get("assetImpacts", {})
+    if not asset_classes or not impact_map:
+        return []
+
+    scenario_by_id = {item.get("id"): item for item in scenarios}
+    contributions = {asset["id"]: [] for asset in asset_classes}
+    for scenario_id, impacts in impact_map.items():
+        scenario = scenario_by_id.get(scenario_id)
+        if not scenario:
+            continue
+        score = scenario.get("score") or 0
+        for impact in impacts:
+            asset_id = impact.get("asset")
+            direction = impact.get("dir")
+            if asset_id not in contributions or direction in (None, 0):
+                continue
+            contributions[asset_id].append(
+                {
+                    "scenarioId": scenario_id,
+                    "name": scenario.get("name"),
+                    "severity": scenario.get("severity"),
+                    "scenarioScore": score,
+                    "dir": direction,
+                    "weight": abs(direction),
+                    "signedScore": (1 if direction > 0 else -1) * score,
+                    # how loudly this scenario pushes this asset, signed
+                    "push": direction * score,
+                }
+            )
+
+    results = []
+    for asset in asset_classes:
+        items = contributions.get(asset["id"], [])
+        weight_sum = sum(item["weight"] for item in items)
+        if weight_sum > 0:
+            bias = sum(item["signedScore"] * item["weight"] for item in items) / weight_sum
+        else:
+            bias = 0.0
+        bias = clamp(bias, -100.0, 100.0)
+        direction, strength = asset_bias_label(bias)
+        drivers = sorted(items, key=lambda item: abs(item["push"]), reverse=True)[:4]
+        results.append(
+            {
+                "id": asset["id"],
+                "name": asset["name"],
+                "short": asset.get("short"),
+                "note": asset.get("note"),
+                "bias": int(round(bias)),
+                "direction": direction,
+                "strength": strength,
+                "magnitude": int(round(abs(bias))),
+                "contributors": len(items),
+                "drivers": [
+                    {
+                        "scenarioId": driver["scenarioId"],
+                        "name": driver["name"],
+                        "severity": driver["severity"],
+                        "scenarioScore": driver["scenarioScore"],
+                        "supports": driver["dir"] > 0,
+                    }
+                    for driver in drivers
+                ],
+            }
+        )
+
+    results.sort(key=lambda item: abs(item["bias"]), reverse=True)
+    return results
+
+
 def build_monitor(refresh=False, demo=False):
     catalog = load_catalog()
     metrics = catalog.get("metrics", [])
@@ -1463,6 +1587,7 @@ def build_monitor(refresh=False, demo=False):
     metrics_by_id = {item["id"]: item for item in results if item.get("id")}
     scenarios = [scenario_score(item, metrics_by_id) for item in catalog.get("scenarios", [])]
     scenarios.sort(key=lambda item: item.get("score", 0), reverse=True)
+    asset_impacts = build_asset_impacts(scenarios, catalog)
     countries = build_country_matrix(catalog, results)
     case_studies = build_case_studies(catalog, metrics_by_id, refresh=refresh, demo=demo)
 
@@ -1484,6 +1609,7 @@ def build_monitor(refresh=False, demo=False):
         "sources": catalog.get("sources", []),
         "events": catalog.get("events", []),
         "scenarios": scenarios,
+        "assetImpacts": asset_impacts,
         "countries": countries,
         "caseStudies": case_studies,
         "extremes": [

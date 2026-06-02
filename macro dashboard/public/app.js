@@ -8,6 +8,7 @@ const state = {
   window: "5Y",
   view: window.location.hash === "#case-studies" ? "cases" : "monitor",
   selectedCaseId: null,
+  selectedCaseMetricId: null,
   seriesCache: new Map(),
   loading: false,
   demo: new URLSearchParams(window.location.search).get("demo") === "1",
@@ -19,6 +20,7 @@ const els = {
   severityNav: document.getElementById("severityNav"),
   metricRows: document.getElementById("metricRows"),
   scenarioGrid: document.getElementById("scenarioGrid"),
+  assetImpactGrid: document.getElementById("assetImpactGrid"),
   countryGrid: document.getElementById("countryGrid"),
   monitorView: document.getElementById("monitorView"),
   caseView: document.getElementById("caseView"),
@@ -278,6 +280,7 @@ function renderAll() {
   renderNavs();
   renderCountries();
   renderScenarios();
+  renderAssetImpacts();
   renderRows();
   renderInspector();
   renderCaseStudies();
@@ -408,6 +411,52 @@ function renderScenarios() {
   }).join("");
 }
 
+function assetDirectionMeta(direction) {
+  return {
+    tailwind: { label: "Tailwind", arrow: "▲", cls: "asset-up" },
+    headwind: { label: "Headwind", arrow: "▼", cls: "asset-down" },
+    neutral: { label: "Neutral", arrow: "▬", cls: "asset-flat" }
+  }[direction] || { label: "Neutral", arrow: "▬", cls: "asset-flat" };
+}
+
+function renderAssetImpacts() {
+  if (!els.assetImpactGrid) return;
+  const assets = state.monitor.assetImpacts || [];
+  if (!assets.length) {
+    els.assetImpactGrid.innerHTML = `<div class="loading-block">Asset impact read becomes available after a live scenario pull.</div>`;
+    return;
+  }
+  els.assetImpactGrid.innerHTML = assets.map((asset) => {
+    const meta = assetDirectionMeta(asset.direction);
+    const bias = Number(asset.bias) || 0;
+    const width = clamp(Math.abs(bias), 0, 100);
+    const topDriver = (asset.drivers || [])[0];
+    const drivers = (asset.drivers || []).slice(0, 3).map((driver) => `
+      <li class="${driver.supports ? "supports" : "opposes"}">
+        <span class="driver-dir">${driver.supports ? "+" : "−"}</span>
+        <span>${escapeHtml(driver.name)}</span>
+        <strong>${driver.scenarioScore ?? "--"}</strong>
+      </li>
+    `).join("");
+    return `
+      <button type="button" class="asset-tile ${meta.cls}" data-scenario="${escapeHtml(topDriver?.scenarioId || "")}">
+        <div class="asset-top">
+          <div class="asset-name">
+            <strong>${escapeHtml(asset.short || asset.name)}</strong>
+            <em>${escapeHtml(asset.name)}</em>
+          </div>
+          <span class="asset-bias">${meta.arrow} ${bias > 0 ? "+" : ""}${bias}</span>
+        </div>
+        <div class="asset-readout">
+          <span class="asset-pill">${escapeHtml(titleCase(asset.strength))} ${meta.label}</span>
+        </div>
+        <div class="asset-bar"><span class="asset-bar-fill" style="--w:${width};--side:${bias >= 0 ? 1 : -1}"></span></div>
+        <ul class="asset-drivers">${drivers || `<li><span>No active driver</span></li>`}</ul>
+      </button>
+    `;
+  }).join("");
+}
+
 function metricChip(metric, fallback = "--") {
   if (!metric) return `<span class="country-missing">${fallback}</span>`;
   return `
@@ -491,6 +540,83 @@ function caseValueBlock(side) {
   `;
 }
 
+function signedNumber(value, digits = 0) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return "--";
+  const numeric = Number(value);
+  const sign = numeric > 0 ? "+" : "";
+  return `${sign}${numeric.toFixed(digits)}`;
+}
+
+function pointDelta(nowSide, thenSide) {
+  if (!nowSide?.ok || !thenSide?.ok) return { level: "--", relative: "--" };
+  const now = Number(nowSide.latest);
+  const then = Number(thenSide.latest);
+  if (!Number.isFinite(now) || !Number.isFinite(then)) return { level: "--", relative: "--" };
+  const unit = nowSide.unit || thenSide.unit;
+  const level = formatValue(now - then, unit);
+  const relative = then === 0 ? "--" : `${signedNumber((now / then - 1) * 100, 1)}%`;
+  return { level: now > then ? `+${level}` : level, relative };
+}
+
+function caseSideDetail(label, side) {
+  if (!side?.ok) {
+    return `
+      <div class="case-side-card muted">
+        <h4>${label}</h4>
+        <p>Unavailable in this window.</p>
+      </div>
+    `;
+  }
+  return `
+    <div class="case-side-card ${cssSeverity(side.severity)}">
+      <h4>${label}</h4>
+      <strong>${formatValue(side.latest, side.unit)}</strong>
+      <div class="case-side-metrics">
+        <span><em>Risk</em><b>${side.riskScore ?? "--"}</b></span>
+        <span><em>Percentile</em><b>${formatPercentile(side.percentile)}</b></span>
+        <span><em>As of</em><b>${formatDate(side.asOf)}</b></span>
+      </div>
+    </div>
+  `;
+}
+
+function caseExpandedDetail(row, study) {
+  const delta = pointDelta(row.now, row.case);
+  const riskDelta = (row.now?.riskScore ?? null) !== null && (row.case?.riskScore ?? null) !== null
+    ? signedNumber((row.now.riskScore || 0) - (row.case.riskScore || 0), 0)
+    : "--";
+  const pctDelta = (row.now?.percentile ?? null) !== null && (row.case?.percentile ?? null) !== null
+    ? signedNumber(((row.now.percentile || 0) - (row.case.percentile || 0)) * 100, 0) + " pts"
+    : "--";
+  return `
+    <div class="case-expanded ${row.status}">
+      <div class="case-expanded-head">
+        <div>
+          <p class="eyebrow">${escapeHtml(row.pillar?.name || row.group || "Public signal")}</p>
+          <h4>${escapeHtml(row.short || row.name)}</h4>
+          <p>${escapeHtml(row.name || "")}</p>
+        </div>
+        <span class="severity-pill">${escapeHtml(caseStatusLabel(row.status))}</span>
+      </div>
+      <div class="case-compare-grid">
+        ${caseSideDetail(`Then · ${formatDate(study.asOf)}`, row.case)}
+        ${caseSideDetail("Now", row.now)}
+      </div>
+      <div class="case-delta-grid">
+        <span><em>Risk delta</em><strong>${riskDelta}</strong></span>
+        <span><em>Percentile delta</em><strong>${pctDelta}</strong></span>
+        <span><em>Level delta</em><strong>${escapeHtml(delta.level)}</strong></span>
+        <span><em>Relative delta</em><strong>${escapeHtml(delta.relative)}</strong></span>
+      </div>
+      <div class="case-expanded-read">
+        <p><strong>Read:</strong> ${escapeHtml(caseStatusNote(row.status))}. Threshold is ${study.threshold || 45}; then risk was ${row.case?.riskScore ?? "--"}, now risk is ${row.now?.riskScore ?? "--"}.</p>
+        <p><strong>Why it matters:</strong> ${escapeHtml(row.why || "This indicator is part of the public-data checklist for the historical setup.")}</p>
+      </div>
+      <button type="button" class="case-open-monitor" data-open-monitor="${escapeHtml(row.id)}">Open full history chart</button>
+    </div>
+  `;
+}
+
 function summarizePillarRows(rows) {
   const active = rows.filter((row) => row.status !== "quiet");
   if (!active.length) return `<span class="case-mini-signal muted">No active public-data signal</span>`;
@@ -510,6 +636,7 @@ function renderCaseStudies() {
     els.casePillars.innerHTML = "";
     els.caseDetail.innerHTML = `<div class="empty-state"><span class="empty-dot"></span><h3>No case study</h3><p>The research framework is not available in the current payload.</p></div>`;
     els.caseRows.innerHTML = "";
+    state.selectedCaseMetricId = null;
     return;
   }
   if (!state.selectedCaseId || !studies.some((study) => study.id === state.selectedCaseId)) {
@@ -531,6 +658,9 @@ function renderCaseStudies() {
   const matched = rows.filter((row) => row.status === "matched");
   const notYet = rows.filter((row) => row.status === "not_yet");
   const nowOnly = rows.filter((row) => row.status === "now_only");
+  if (!state.selectedCaseMetricId || !rows.some((row) => row.id === state.selectedCaseMetricId)) {
+    state.selectedCaseMetricId = (matched[0] || nowOnly[0] || notYet[0] || rows[0] || {}).id || null;
+  }
   els.caseDetail.innerHTML = `
     <div class="case-detail-head">
       <div>
@@ -586,21 +716,25 @@ function renderCaseStudies() {
     `;
   }).join("");
 
-  els.caseRows.innerHTML = rows.map((row) => `
-    <button type="button" class="case-row ${row.status}" data-id="${escapeHtml(row.id)}">
-      <span class="case-status">
-        <strong>${caseStatusLabel(row.status)}</strong>
-        <em>${caseStatusNote(row.status)}</em>
-      </span>
-      <span class="indicator-cell">
-        <strong>${escapeHtml(row.short || row.name)}</strong>
-        <span>${escapeHtml(row.name || "")}</span>
-        <small>${escapeHtml(row.pillar?.name || row.group || "")}</small>
-      </span>
-      ${caseValueBlock(row.case)}
-      ${caseValueBlock(row.now)}
-    </button>
-  `).join("");
+  els.caseRows.innerHTML = rows.map((row) => {
+    const active = row.id === state.selectedCaseMetricId;
+    return `
+      <button type="button" class="case-row ${row.status} ${active ? "active" : ""}" data-id="${escapeHtml(row.id)}" aria-expanded="${active ? "true" : "false"}">
+        <span class="case-status">
+          <strong>${caseStatusLabel(row.status)}</strong>
+          <em>${caseStatusNote(row.status)}</em>
+        </span>
+        <span class="indicator-cell">
+          <strong>${escapeHtml(row.short || row.name)}</strong>
+          <span>${escapeHtml(row.name || "")}</span>
+          <small>${escapeHtml(row.pillar?.name || row.group || "")}</small>
+        </span>
+        ${caseValueBlock(row.case)}
+        ${caseValueBlock(row.now)}
+      </button>
+      ${active ? caseExpandedDetail(row, selected) : ""}
+    `;
+  }).join("");
 }
 
 function renderRows() {
@@ -913,14 +1047,23 @@ function wireEvents() {
     const button = event.target.closest("button[data-case]");
     if (!button) return;
     state.selectedCaseId = button.dataset.case;
+    state.selectedCaseMetricId = null;
     renderCaseStudies();
   });
 
   els.caseRows?.addEventListener("click", (event) => {
+    const openButton = event.target.closest("button[data-open-monitor]");
+    if (openButton) {
+      selectMetric(openButton.dataset.openMonitor);
+      setView("monitor");
+      return;
+    }
     const row = event.target.closest(".case-row[data-id]");
     if (!row) return;
-    selectMetric(row.dataset.id);
-    setView("monitor");
+    const scrollTop = els.caseRows.scrollTop;
+    state.selectedCaseMetricId = row.dataset.id;
+    renderCaseStudies();
+    els.caseRows.scrollTop = scrollTop;
   });
 
   els.groupNav.addEventListener("click", (event) => {
@@ -948,6 +1091,14 @@ function wireEvents() {
   els.scenarioGrid.addEventListener("click", (event) => {
     const tile = event.target.closest(".scenario-tile[data-scenario]");
     if (!tile) return;
+    const scenario = (state.monitor?.scenarios || []).find((item) => item.id === tile.dataset.scenario);
+    const driver = scenario?.drivers?.[0];
+    if (driver) selectMetric(driver.id);
+  });
+
+  els.assetImpactGrid?.addEventListener("click", (event) => {
+    const tile = event.target.closest(".asset-tile[data-scenario]");
+    if (!tile || !tile.dataset.scenario) return;
     const scenario = (state.monitor?.scenarios || []).find((item) => item.id === tile.dataset.scenario);
     const driver = scenario?.drivers?.[0];
     if (driver) selectMetric(driver.id);

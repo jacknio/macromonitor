@@ -554,6 +554,78 @@
       ]
     }
   ],
+  "assetClasses": [
+    {"id": "us_equities", "name": "US Equities", "short": "US Equities", "note": "S&P 500 / NASDAQ beta"},
+    {"id": "long_ust", "name": "Long U.S. Treasuries", "short": "Long USTs", "note": "Duration / 10y+ govt bonds"},
+    {"id": "credit", "name": "Credit (IG/HY)", "short": "Credit", "note": "Corporate spreads, high yield"},
+    {"id": "usd", "name": "U.S. Dollar", "short": "USD", "note": "Broad trade-weighted USD"},
+    {"id": "gold", "name": "Gold", "short": "Gold", "note": "Safe-haven / real-rate hedge"},
+    {"id": "oil", "name": "Oil & Energy", "short": "Oil", "note": "WTI / Brent / energy complex"},
+    {"id": "em_assets", "name": "EM & Risk FX", "short": "EM & Risk FX", "note": "EM equity, debt, carry FX"},
+    {"id": "crypto", "name": "Crypto / BTC", "short": "Crypto", "note": "High-beta risk proxy"}
+  ],
+  "assetImpacts": {
+    "carry_unwind": [
+      {"asset": "us_equities", "dir": -1.0}, {"asset": "long_ust", "dir": 0.6},
+      {"asset": "credit", "dir": -0.6}, {"asset": "usd", "dir": -0.6},
+      {"asset": "gold", "dir": 0.6}, {"asset": "oil", "dir": -0.6},
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "crypto", "dir": -1.0}
+    ],
+    "funding_stress": [
+      {"asset": "us_equities", "dir": -1.0}, {"asset": "long_ust", "dir": 0.6},
+      {"asset": "credit", "dir": -1.0}, {"asset": "usd", "dir": 1.0},
+      {"asset": "gold", "dir": -0.6}, {"asset": "oil", "dir": -0.6},
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "crypto", "dir": -1.0}
+    ],
+    "inflation_shock": [
+      {"asset": "us_equities", "dir": -0.6}, {"asset": "long_ust", "dir": -1.0},
+      {"asset": "credit", "dir": -0.6}, {"asset": "usd", "dir": 0.6},
+      {"asset": "gold", "dir": 0.6}, {"asset": "oil", "dir": 1.0},
+      {"asset": "em_assets", "dir": -0.6}, {"asset": "crypto", "dir": 0.6}
+    ],
+    "growth_scare": [
+      {"asset": "us_equities", "dir": -1.0}, {"asset": "long_ust", "dir": 1.0},
+      {"asset": "credit", "dir": -0.6}, {"asset": "usd", "dir": 0.6},
+      {"asset": "gold", "dir": 0.6}, {"asset": "oil", "dir": -1.0},
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "crypto", "dir": -0.6}
+    ],
+    "liquidity_drain": [
+      {"asset": "us_equities", "dir": -0.6}, {"asset": "long_ust", "dir": -0.6},
+      {"asset": "credit", "dir": -0.6}, {"asset": "usd", "dir": 1.0},
+      {"asset": "gold", "dir": -0.6}, {"asset": "oil", "dir": -0.6},
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "crypto", "dir": -1.0}
+    ],
+    "risk_off": [
+      {"asset": "us_equities", "dir": -1.0}, {"asset": "long_ust", "dir": 0.6},
+      {"asset": "credit", "dir": -1.0}, {"asset": "usd", "dir": 0.6},
+      {"asset": "gold", "dir": 0.6}, {"asset": "oil", "dir": -0.6},
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "crypto", "dir": -1.0}
+    ],
+    "valuation_fragility": [
+      {"asset": "us_equities", "dir": -1.0}, {"asset": "long_ust", "dir": 0.6},
+      {"asset": "credit", "dir": -0.6}, {"asset": "gold", "dir": 0.6},
+      {"asset": "crypto", "dir": -0.6}
+    ],
+    "bubble_breadth": [
+      {"asset": "us_equities", "dir": -0.6}, {"asset": "credit", "dir": -0.6},
+      {"asset": "crypto", "dir": -0.6}, {"asset": "gold", "dir": 0.6}
+    ],
+    "sovereign_refinancing": [
+      {"asset": "long_ust", "dir": -1.0}, {"asset": "us_equities", "dir": -0.6},
+      {"asset": "credit", "dir": -0.6}, {"asset": "usd", "dir": -0.6},
+      {"asset": "gold", "dir": 1.0}, {"asset": "crypto", "dir": 0.6}
+    ],
+    "country_macro_shock": [
+      {"asset": "em_assets", "dir": -1.0}, {"asset": "usd", "dir": 0.6},
+      {"asset": "credit", "dir": -0.6}, {"asset": "us_equities", "dir": -0.6},
+      {"asset": "gold", "dir": 0.6}
+    ],
+    "external_vulnerability": [
+      {"asset": "usd", "dir": 1.0}, {"asset": "em_assets", "dir": -1.0},
+      {"asset": "long_ust", "dir": 0.6}, {"asset": "gold", "dir": 0.6},
+      {"asset": "us_equities", "dir": -0.6}
+    ]
+  },
   "caseStudies": [
     {
       "id": "dotcom_ai_template",
@@ -906,7 +978,7 @@
       "short": "Profit/GDP",
       "group": "Valuation",
       "region": "US",
-      "frequency": "quarterly",
+      "frequency": "annual",
       "unit": "% GDP",
       "transform": "level",
       "riskDirection": "high",
@@ -1523,32 +1595,32 @@
       "id": "sp500",
       "provider": "fred",
       "sourceId": "SP500",
-      "name": "S&P 500",
-      "short": "S&P 500",
+      "name": "S&P 500 drawdown from peak",
+      "short": "S&P 500 DD",
       "group": "Markets",
       "region": "US",
       "frequency": "daily",
-      "unit": "index",
-      "transform": "level",
+      "unit": "%",
+      "transform": "drawdown",
       "riskDirection": "low",
       "tags": [
         "market",
         "risk",
         "equity"
       ],
-      "why": "Large-cap U.S. equity price level; downside momentum matters more than high levels."
+      "why": "Drawdown of large-cap U.S. equities from their trailing peak; deep drawdowns are the risk side, and a stationary drawdown series is far more meaningful to rank than a trending price level."
     },
     {
       "id": "nasdaq",
       "provider": "fred",
       "sourceId": "NASDAQCOM",
-      "name": "NASDAQ Composite",
-      "short": "NASDAQ",
+      "name": "NASDAQ Composite drawdown from peak",
+      "short": "NASDAQ DD",
       "group": "Markets",
       "region": "US",
       "frequency": "daily",
-      "unit": "index",
-      "transform": "level",
+      "unit": "%",
+      "transform": "drawdown",
       "riskDirection": "low",
       "tags": [
         "market",
@@ -1556,19 +1628,19 @@
         "equity",
         "growth"
       ],
-      "why": "Tech-heavy equity beta; often amplifies rates and liquidity shocks."
+      "why": "Drawdown of the tech-heavy NASDAQ from its trailing peak; amplifies rates and liquidity shocks and is the cleaner risk read versus the raw index level."
     },
     {
       "id": "nikkei225",
       "provider": "fred",
       "sourceId": "NIKKEI225",
-      "name": "Nikkei 225",
-      "short": "Nikkei",
+      "name": "Nikkei 225 drawdown from peak",
+      "short": "Nikkei DD",
       "group": "FX & Carry",
       "region": "Japan",
       "frequency": "daily",
-      "unit": "index",
-      "transform": "level",
+      "unit": "%",
+      "transform": "drawdown",
       "riskDirection": "low",
       "tags": [
         "market",
@@ -1576,7 +1648,7 @@
         "japan",
         "carry"
       ],
-      "why": "Japanese equities are a useful lens on yen carry stress and local risk appetite."
+      "why": "Drawdown of Japanese equities from their trailing peak; a useful lens on yen carry stress and local risk appetite."
     },
     {
       "id": "dgs3mo",
@@ -2549,7 +2621,7 @@
       "why": "Copper is a cyclical demand and China-sensitive commodity signal."
     },
     {
-      "id": "gold",
+      "id": "gold_vol",
       "provider": "fred",
       "sourceId": "GVZCLS",
       "name": "CBOE Gold ETF Volatility Index",
@@ -2564,9 +2636,30 @@
         "commodity",
         "safe_haven",
         "inflation",
-        "vol"
+        "vol",
+        "gold"
       ],
       "why": "Gold ETF volatility can flag safe-haven stress, inflation hedging demand, and commodity volatility shocks."
+    },
+    {
+      "id": "gold",
+      "provider": "yahoo",
+      "sourceId": "GC=F",
+      "name": "Gold price (front-month future)",
+      "short": "Gold",
+      "group": "Commodities",
+      "region": "Global",
+      "frequency": "daily",
+      "unit": "USD/oz",
+      "transform": "level",
+      "riskDirection": "two-sided",
+      "tags": [
+        "commodity",
+        "safe_haven",
+        "inflation",
+        "gold"
+      ],
+      "why": "Spot-equivalent gold price; rising gold often reflects safe-haven demand, real-rate declines, and inflation hedging, so fast moves carry cross-asset signal."
     }
   ]
 }

@@ -6,9 +6,13 @@ const state = {
   sort: "alert",
   query: "",
   window: "5Y",
-  view: window.location.hash === "#case-studies" ? "cases" : "monitor",
-  selectedCaseId: null,
-  selectedCaseMetricId: null,
+  view: window.location.hash.startsWith("#case") ? "cases" : "monitor",
+  selectedCaseId: window.location.hash.startsWith("#case=")
+    ? decodeURIComponent(window.location.hash.slice(6).split("&m=")[0])
+    : null,
+  selectedCaseMetricId: window.location.hash.includes("&m=")
+    ? decodeURIComponent(window.location.hash.split("&m=")[1])
+    : null,
   seriesCache: new Map(),
   loading: false,
   demo: new URLSearchParams(window.location.search).get("demo") === "1",
@@ -289,9 +293,30 @@ function renderAll() {
 function setView(view, options = {}) {
   state.view = view === "cases" ? "cases" : "monitor";
   if (!options.quiet) {
-    window.location.hash = state.view === "cases" ? "case-studies" : "";
+    if (state.view === "cases") {
+      window.location.hash = state.selectedCaseId ? `case=${state.selectedCaseId}` : "case-studies";
+    } else {
+      window.location.hash = "";
+    }
   }
   renderView();
+}
+
+function parseLocationHash() {
+  const hash = window.location.hash || "";
+  if (hash.startsWith("#case=")) {
+    const body = hash.slice(6);
+    const [caseId, metricId] = body.split("&m=");
+    return {
+      view: "cases",
+      caseId: decodeURIComponent(caseId),
+      metricId: metricId ? decodeURIComponent(metricId) : null
+    };
+  }
+  if (hash === "#case-studies") {
+    return { view: "cases", caseId: null, metricId: null };
+  }
+  return { view: "monitor", caseId: null, metricId: null };
 }
 
 function renderView() {
@@ -301,7 +326,14 @@ function renderView() {
   els.caseView.hidden = !showCases;
   els.caseTopbar.hidden = !showCases;
   els.viewNav?.querySelectorAll("button[data-view]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === state.view);
+    let active = button.dataset.view === state.view;
+    if (active && state.view === "cases") {
+      // Multiple case buttons share data-view="cases"; only the selected case is active.
+      active = button.dataset.case
+        ? button.dataset.case === state.selectedCaseId
+        : false;
+    }
+    button.classList.toggle("active", active);
   });
 }
 
@@ -598,6 +630,17 @@ function caseExpandedDetail(row, study) {
         </div>
         <span class="severity-pill">${escapeHtml(caseStatusLabel(row.status))}</span>
       </div>
+      <div class="case-chart-block">
+        <div class="case-chart-head">
+          <span class="case-chart-title">${study.shockDate ? "Historical path into the shock" : "Trend vs baseline"}</span>
+          <span class="case-chart-legend">
+            ${study.shockDate ? `<i class="lg-shock"></i>${escapeHtml(formatDate(study.shockDate))} shock` : ""}
+            <i class="lg-base"></i>${study.monitorMode ? "baseline" : "as-of"} ${escapeHtml(formatDate(study.asOf))}
+          </span>
+        </div>
+        <svg id="caseChart" class="case-chart" role="img" aria-label="${escapeHtml((row.short || row.name) + " historical trend")}"></svg>
+        <div class="case-chart-loading" id="caseChartLoading">Loading historical series…</div>
+      </div>
       <div class="case-compare-grid">
         ${caseSideDetail(`Then · ${formatDate(study.asOf)}`, row.case)}
         ${caseSideDetail("Now", row.now)}
@@ -639,7 +682,11 @@ function renderCaseStudies() {
     state.selectedCaseMetricId = null;
     return;
   }
-  if (!state.selectedCaseId || !studies.some((study) => study.id === state.selectedCaseId)) {
+  // Only default when nothing is selected. If a case is selected (e.g. from a
+  // #case= deep link) but missing from THIS payload (a stale bootstrap snapshot
+  // that predates it), keep it pending so the live refresh can honor it instead
+  // of clobbering the choice to studies[0].
+  if (!state.selectedCaseId) {
     state.selectedCaseId = studies[0].id;
   }
   const selected = studies.find((study) => study.id === state.selectedCaseId) || studies[0];
@@ -664,7 +711,9 @@ function renderCaseStudies() {
   els.caseDetail.innerHTML = `
     <div class="case-detail-head">
       <div>
-        <p class="eyebrow">${escapeHtml(formatDate(selected.asOf))} / shock ${escapeHtml(formatDate(selected.shockDate))}</p>
+        <p class="eyebrow">${selected.monitorMode
+          ? `baseline ${escapeHtml(formatDate(selected.asOf))} / live monitor`
+          : `${escapeHtml(formatDate(selected.asOf))} / shock ${escapeHtml(formatDate(selected.shockDate))}`}</p>
         <h3>${escapeHtml(selected.name)}</h3>
         <p>${escapeHtml(selected.market || "")}</p>
       </div>
@@ -735,6 +784,112 @@ function renderCaseStudies() {
       ${active ? caseExpandedDetail(row, selected) : ""}
     `;
   }).join("");
+
+  if (state.view === "cases" && state.selectedCaseMetricId) {
+    drawSelectedCaseChart(selected);
+  }
+}
+
+function caseChartWindow(points, study) {
+  if (!points || !points.length) return points || [];
+  const latest = new Date(points[points.length - 1].date).getTime();
+  const year = 365 * 86400000;
+  const anchor = study.shockDate
+    ? new Date(study.shockDate).getTime()
+    : study.asOf
+    ? new Date(study.asOf).getTime()
+    : latest;
+  // Start a few years before the shock/baseline so the run-up is clearly visible.
+  const start = Math.min(anchor - 8 * year, latest - 6 * year);
+  const windowed = points.filter((point) => new Date(point.date).getTime() >= start);
+  return windowed.length >= 2 ? windowed : points;
+}
+
+async function drawSelectedCaseChart(study) {
+  const metricId = state.selectedCaseMetricId;
+  if (!metricId) return;
+  const cached = state.seriesCache.get(metricId);
+  if (cached?.points) {
+    const svg = document.getElementById("caseChart");
+    const loading = document.getElementById("caseChartLoading");
+    if (loading) loading.style.display = "none";
+    if (svg) drawCaseChart(svg, cached, study);
+    return;
+  }
+  try {
+    const params = new URLSearchParams({ id: metricId });
+    if (state.demo) params.set("demo", "1");
+    const series = await fetchJson(`/api/series?${params.toString()}`);
+    state.seriesCache.set(metricId, series);
+    if (state.view !== "cases" || state.selectedCaseMetricId !== metricId) return;
+    const svg = document.getElementById("caseChart");
+    const loading = document.getElementById("caseChartLoading");
+    if (loading) loading.style.display = "none";
+    if (svg && series?.points) drawCaseChart(svg, series, study);
+  } catch (error) {
+    const loading = document.getElementById("caseChartLoading");
+    if (loading) loading.textContent = "Historical series unavailable for this signal.";
+  }
+}
+
+function drawCaseChart(svg, series, study) {
+  if (!svg || !series?.points?.length) return;
+  const wrap = svg.parentElement;
+  const width = Math.max(360, (wrap && wrap.clientWidth) || 560);
+  const height = 230;
+  const margin = { top: 20, right: 16, bottom: 30, left: 48 };
+  const raw = caseChartWindow(series.points, study).filter((point) => Number.isFinite(Number(point.value)));
+  const points = downsample(raw, 700);
+  if (points.length < 2) return;
+  const dates = points.map((point) => new Date(point.date).getTime());
+  const values = points.map((point) => Number(point.value));
+  let min = Math.min(...values);
+  let max = Math.max(...values);
+  const pad = (max - min || 1) * 0.12;
+  min -= pad;
+  max += pad;
+  const xMin = Math.min(...dates);
+  const xMax = Math.max(...dates);
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
+  const x = (ms) => margin.left + ((ms - xMin) / (xMax - xMin || 1)) * plotW;
+  const y = (value) => margin.top + (1 - (value - min) / (max - min || 1)) * plotH;
+  const path = points
+    .map((point, index) => `${index ? "L" : "M"} ${x(new Date(point.date).getTime()).toFixed(1)} ${y(Number(point.value)).toFixed(1)}`)
+    .join(" ");
+  const grid = [0, 0.5, 1]
+    .map((step) => {
+      const gy = margin.top + step * plotH;
+      const value = max - step * (max - min);
+      return `<line x1="${margin.left}" y1="${gy.toFixed(1)}" x2="${width - margin.right}" y2="${gy.toFixed(1)}" stroke="rgba(23,21,15,0.08)" /><text x="6" y="${(gy + 3).toFixed(1)}" fill="#736f64" font-size="9" font-family="monospace">${escapeHtml(compactNumber(value, 2))}</text>`;
+    })
+    .join("");
+  const band = series.p05 != null && series.p95 != null && series.p95 >= series.p05
+    ? `<rect x="${margin.left}" y="${y(series.p95).toFixed(1)}" width="${plotW}" height="${Math.max(1, y(series.p05) - y(series.p95)).toFixed(1)}" fill="rgba(44,122,107,0.08)" />`
+    : "";
+  const vline = (ms, color, label, dash) => {
+    if (!Number.isFinite(ms) || ms < xMin || ms > xMax) return "";
+    const vx = x(ms);
+    return `<line x1="${vx.toFixed(1)}" y1="${margin.top}" x2="${vx.toFixed(1)}" y2="${height - margin.bottom}" stroke="${color}" stroke-width="1.6"${dash ? ` stroke-dasharray="${dash}"` : ""} /><text x="${vx.toFixed(1)}" y="${(margin.top - 6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="9.5" font-family="monospace">${escapeHtml(label)}</text>`;
+  };
+  const baseMs = study.asOf ? new Date(study.asOf).getTime() : null;
+  const shockMs = study.shockDate ? new Date(study.shockDate).getTime() : null;
+  const baseLine = baseMs ? vline(baseMs, "#736f64", study.monitorMode ? "baseline" : "as-of", "4 4") : "";
+  const shockLine = shockMs ? vline(shockMs, "#bd3e34", "war", null) : "";
+  const last = points[points.length - 1];
+  const lastX = x(new Date(last.date).getTime());
+  const lastY = y(Number(last.value));
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.innerHTML = `
+    ${band}
+    ${grid}
+    ${baseLine}
+    ${shockLine}
+    <path d="${path}" fill="none" stroke="#2c7a6b" stroke-width="2" vector-effect="non-scaling-stroke" />
+    <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="#2c7a6b" stroke="#fffaf0" stroke-width="1.5" />
+    <text x="${margin.left}" y="${(height - 8).toFixed(1)}" fill="#736f64" font-size="9" font-family="monospace">${formatDate(points[0].date)}</text>
+    <text x="${(width - margin.right).toFixed(1)}" y="${(height - 8).toFixed(1)}" text-anchor="end" fill="#736f64" font-size="9" font-family="monospace">${formatDate(last.date)}</text>
+  `;
 }
 
 function renderRows() {
@@ -1038,7 +1193,12 @@ function wireEvents() {
   els.viewNav?.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-view]");
     if (!button) return;
+    if (button.dataset.case) {
+      state.selectedCaseId = button.dataset.case;
+      state.selectedCaseMetricId = null;
+    }
     setView(button.dataset.view);
+    if (state.view === "cases") renderCaseStudies();
   });
 
   els.backToMonitorBtn?.addEventListener("click", () => setView("monitor"));
@@ -1049,6 +1209,7 @@ function wireEvents() {
     state.selectedCaseId = button.dataset.case;
     state.selectedCaseMetricId = null;
     renderCaseStudies();
+    renderView();
   });
 
   els.caseRows?.addEventListener("click", (event) => {
@@ -1148,13 +1309,29 @@ function wireEvents() {
   });
 
   window.addEventListener("resize", () => {
+    if (state.view === "cases") {
+      const studies = state.monitor?.caseStudies || [];
+      const selected = studies.find((study) => study.id === state.selectedCaseId);
+      if (selected) drawSelectedCaseChart(selected);
+      return;
+    }
     const series = state.seriesCache.get(state.selectedId);
     if (series?.points) drawDetailChart(series);
   });
 
   window.addEventListener("hashchange", () => {
-    const nextView = window.location.hash === "#case-studies" ? "cases" : "monitor";
-    if (nextView !== state.view) setView(nextView, { quiet: true });
+    const route = parseLocationHash();
+    if (route.caseId && route.caseId !== state.selectedCaseId) {
+      state.selectedCaseId = route.caseId;
+      state.selectedCaseMetricId = null;
+    }
+    if (route.metricId) state.selectedCaseMetricId = route.metricId;
+    if (route.view !== state.view) {
+      setView(route.view, { quiet: true });
+    } else {
+      renderView();
+    }
+    if (route.view === "cases") renderCaseStudies();
   });
 }
 

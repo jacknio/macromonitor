@@ -1651,6 +1651,67 @@ button {
   }
 }
 
+/* Case study historical chart */
+.case-chart-block {
+  margin: 4px 0 14px;
+  padding: 12px 12px 6px;
+  background: rgba(255, 250, 240, 0.6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.case-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.case-chart-title {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.case-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.case-chart-legend i {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.case-chart-legend .lg-shock {
+  border-top: 2px solid var(--shock);
+}
+
+.case-chart-legend .lg-base {
+  border-top: 2px dashed var(--muted);
+}
+
+.case-chart {
+  width: 100%;
+  height: 230px;
+  display: block;
+}
+
+.case-chart-loading {
+  font-size: 11px;
+  color: var(--muted-2);
+  padding: 4px 2px;
+}
+
 /* Asset impact board */
 .asset-section {
   margin-bottom: 28px;

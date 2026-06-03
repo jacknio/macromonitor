@@ -314,6 +314,19 @@ def worldbank_url(country_code, indicator):
     return "https://api.worldbank.org/v2/country/%s/indicator/%s?format=json&per_page=20000" % (country, indicator)
 
 
+def tic_url():
+    # Treasury TIC "Major Foreign Holders of Treasury Securities" full history file.
+    # One file holds every country; the parser selects the row, so all TIC metrics
+    # share a single cached fetch.
+    return "https://ticdata.treasury.gov/resource-center/data-chart-center/tic/Documents/mfhhis01.txt"
+
+
+TIC_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
 def parse_fred_csv(text, metric):
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames or len(reader.fieldnames) < 2:
@@ -451,6 +464,54 @@ def parse_worldbank_json(text, metric):
     return dedupe_sort(points)
 
 
+def parse_tic_txt(text, metric):
+    """Parse a Treasury TIC 'Major Foreign Holders' wide table.
+
+    The file stacks monthly release blocks; each block has a month-abbrev row,
+    a year row, then one row per country with a value per column. We collect
+    (month-end, value) for the requested country across every block.
+    """
+    country_name = metric.get("ticCountry") or metric.get("sourceId")
+    if not country_name:
+        raise ValueError("TIC metric missing ticCountry")
+    target = country_name.strip().lower()
+
+    points = {}
+    columns = None
+    pending_months = None
+    for raw in text.splitlines():
+        cells = [cell.strip().strip('"') for cell in raw.split("\t")]
+        body = cells[1:] if len(cells) > 1 else []
+        non_empty = [cell for cell in body if cell]
+
+        month_hits = sum(1 for cell in non_empty if cell[:3].lower() in TIC_MONTHS)
+        if non_empty and month_hits >= max(3, len(non_empty) // 2):
+            pending_months = [TIC_MONTHS.get(cell[:3].lower()) for cell in body]
+            continue
+
+        year_hits = sum(1 for cell in body if re.fullmatch(r"\d{4}", cell))
+        if pending_months and year_hits >= 3:
+            columns = []
+            for month, cell in zip(pending_months, body):
+                year = int(cell) if re.fullmatch(r"\d{4}", cell) else None
+                columns.append(dt.date(year, month, 1) if (month and year) else None)
+            pending_months = None
+            continue
+
+        if columns and cells and cells[0].strip().lower() == target:
+            for column_date, value in zip(columns, body):
+                if column_date is None:
+                    continue
+                numeric = parse_number(value)
+                if numeric is None:
+                    continue
+                points[column_date] = numeric
+
+    if not points:
+        raise ValueError("TIC table had no observations for %s" % country_name)
+    return dedupe_sort([{"date": key, "value": points[key]} for key in points])
+
+
 def compute_derived_formula(formula, values, scale=1.0):
     names = list(values.keys())
     if len(names) < 2 and formula not in ("inverse_pct",):
@@ -538,6 +599,7 @@ def fetch_derived_points(metric, refresh=False):
 
     formula = metric.get("formula", "ratio")
     scale = float(metric.get("formulaScale") or 1.0)
+    divisor = parse_number(metric.get("valueDivisor")) or 1.0
     points = []
     for base_point in base_component["points"]:
         date_value = base_point["date"]
@@ -554,7 +616,7 @@ def fetch_derived_points(metric, refresh=False):
         numeric = compute_derived_formula(formula, values, scale=scale)
         if numeric is None or math.isnan(numeric) or math.isinf(numeric):
             continue
-        points.append({"date": date_value, "value": numeric})
+        points.append({"date": date_value, "value": numeric / divisor})
     if not points:
         raise ValueError("derived metric produced no observations")
     return dedupe_sort(points), aggregate_status(statuses), (max(fetched_times) if fetched_times else None), (urls[0] if urls else None)
@@ -586,6 +648,10 @@ def fetch_raw_points(metric, refresh=False):
         url = yahoo_url(metric["sourceId"])
         text, status, fetched_at = fetch_url(url, refresh=refresh)
         return parse_yahoo_json(text, metric), status, fetched_at, url
+    if provider == "treasury_tic":
+        url = tic_url()
+        text, status, fetched_at = fetch_url(url, refresh=refresh)
+        return parse_tic_txt(text, metric), status, fetched_at, url
     if provider == "derived":
         return fetch_derived_points(metric, refresh=refresh)
     raise ValueError("unsupported provider: %s" % provider)
@@ -848,6 +914,9 @@ def severity(score):
 
 
 def stale_days_for(metric):
+    override = parse_number(metric.get("staleDays"))
+    if override is not None:
+        return override
     frequency = metric.get("frequency", "").lower()
     if frequency == "daily":
         return 10
@@ -1399,6 +1468,8 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
             {
                 "id": study.get("id"),
                 "name": study.get("name"),
+                "order": study.get("order"),
+                "monitorMode": bool(study.get("monitorMode")),
                 "asOf": date_to_iso(as_of_date),
                 "shockDate": study.get("shockDate"),
                 "market": study.get("market"),
@@ -1416,7 +1487,12 @@ def build_case_studies(catalog, current_by_id, refresh=False, demo=False):
                 "metrics": rows,
             }
         )
-    studies.sort(key=lambda item: item.get("asOf") or "")
+    studies.sort(
+        key=lambda item: (
+            item.get("order") if item.get("order") is not None else 999,
+            item.get("asOf") or "",
+        )
+    )
     return studies
 
 
